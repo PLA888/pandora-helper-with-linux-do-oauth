@@ -237,6 +237,9 @@ public class AccountService extends ServiceImpl<AccountMapper, Account> implemen
         accountVOS.stream().forEach(e->{
             e.setRefreshToken(null);
             e.setAccessToken(null);
+            if (type!=null){
+                e.setEmail(null);
+            }
         });
         for (AccountVO accountVO : accountVOS) {
             Integer id = accountVO.getId();
