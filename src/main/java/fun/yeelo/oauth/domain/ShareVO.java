@@ -40,6 +40,12 @@ public class ShareVO extends Share{
 
     private Integer duration;
 
+    private Integer gptUserCount;
+
+    private Integer claudeUserCount;
+
+    private Integer apiUserCount;
+
     private Boolean self = false;
 
 }

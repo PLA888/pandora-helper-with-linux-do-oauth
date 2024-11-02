@@ -184,7 +184,8 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
             if (gptConfig != null) {
                 int total = gptAccountMap.getOrDefault(gptConfig.getAccountId(),new ArrayList<>()).size();
                 share.setGptEmail(accountService.getById(gptConfig.getAccountId()).getEmail());
-                share.setGptCarName(accountService.getById(gptConfig.getAccountId()).getName()+" ("+total+"人)");;
+                share.setGptCarName(accountService.getById(gptConfig.getAccountId()).getName());;
+                share.setGptUserCount(total);
                 share.setGptConfigId(gptConfig.getId());
             } else {
                 share.setGptEmail("-");
@@ -194,7 +195,8 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
             if (claudeConfig != null) {
                 int total = claudeAccountMap.getOrDefault(claudeConfig.getAccountId(),new ArrayList<>()).size();
                 share.setClaudeEmail(accountService.getById(claudeConfig.getAccountId()).getEmail());
-                share.setClaudeCarName(accountService.getById(claudeConfig.getAccountId()).getName()+" ("+total+"人)");
+                share.setClaudeCarName(accountService.getById(claudeConfig.getAccountId()).getName());
+                share.setClaudeUserCount(total);
                 share.setClaudeConfigId(claudeConfig.getId());
             } else {
                 share.setClaudeEmail("-");
@@ -204,7 +206,9 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
 
             if (apiConfig != null) {
                 int total = apiAccountMap.getOrDefault(apiConfig.getAccountId(),new ArrayList<>()).size();
-                share.setApiCarName(accountService.getById(apiConfig.getAccountId()).getName()+" ("+total+"人)");
+                share.setApiCarName(accountService.getById(apiConfig.getAccountId()).getName());
+                share.setApiUserCount(total);
+
                 share.setApiConfigId(apiConfig.getId());
             } else {
                 share.setApiCarName("-");
