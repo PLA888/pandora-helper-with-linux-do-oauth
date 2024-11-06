@@ -51,14 +51,16 @@ public class UpdateTimer {
     @Autowired
     private EmailService emailService;
 
-    @Value("${stmp.admin-email}")
+    @Value("${smtp.admin-email}")
     private String adminEmail;
 
     private static final String REFRESH_URL = "https://token.oaifree.com/api/auth/refresh";
 
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+
     @PostConstruct
+    @ConditionalOnProperty(name = "smtp.enable", havingValue = "true")
     public void init() {
         log.info("启动预检");
         sendAccountExpiringEmail();
@@ -156,7 +158,7 @@ public class UpdateTimer {
         log.info("刷新share_token结束");
     }
 
-    @ConditionalOnProperty(name = "stmp.enable", havingValue = "true")
+    @ConditionalOnProperty(name = "smtp.enable", havingValue = "true")
     @Scheduled(cron = "0 0 8 * * ?")
     public void sendShareExpiringEmail() {
         log.info("开始发送订阅过期通知");
@@ -174,7 +176,7 @@ public class UpdateTimer {
         log.info("发送订阅过期通知结束");
     }
 
-    @ConditionalOnProperty(name = "stmp.enable", havingValue = "true")
+    @ConditionalOnProperty(name = "smtp.enable", havingValue = "true")
     @Scheduled(cron = "0 0 8 * * ?")
     public void sendAccountExpiringEmail() {
         log.info("开始发送ChatGPT账号过期通知");

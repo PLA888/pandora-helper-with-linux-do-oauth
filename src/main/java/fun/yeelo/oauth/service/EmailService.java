@@ -2,6 +2,7 @@ package fun.yeelo.oauth.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.SimpleMailMessage;
@@ -18,6 +19,8 @@ import java.io.File;
 public class EmailService {
     @Autowired
     private JavaMailSender mailSender;
+    @Value("${smtp.admin-email}")
+    private String adminEmail;
 
     public void sendSimpleEmail(String to, String subject, String text) {
         try {
