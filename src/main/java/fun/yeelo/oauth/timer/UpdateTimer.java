@@ -24,11 +24,13 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -59,7 +61,7 @@ public class UpdateTimer {
     @Autowired
     private EmailService emailService;
 
-    @Value("${smtp.admin-email}")
+    @Value("${spring.mail.username}")
     private String adminEmail;
 
     private static final String REFRESH_URL = "https://token.oaifree.com/api/auth/refresh";
@@ -71,8 +73,10 @@ public class UpdateTimer {
     @ConditionalOnProperty(name = "smtp.enable", havingValue = "true")
     public void init() {
         log.info("启动预检");
-        sendAccountExpiringEmail();
-        sendShareExpiringEmail();
+        CompletableFuture.runAsync(()->{
+            sendAccountExpiringEmail();
+            sendShareExpiringEmail();
+        });
     }
 
     @Scheduled(cron = "0 0 1 * * ?")
@@ -177,12 +181,12 @@ public class UpdateTimer {
             try {
                 LocalDate expireData = LocalDate.parse(share.getExpiresAt(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
                 if (expireData.isEqual(LocalDate.now().plusDays(1))) {
-                    String password = shareService.getById(1).getPassword();
+                    String password = share.getPassword();
                     JSONObject jsonObject = new JSONObject();
                     jsonObject.put("username",share.getUniqueName());
                     jsonObject.put("date",expireData.plusMonths(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
-                    String encryptedCode = EncryptDecryptUtil.encrypt(jsonObject.toJSONString(), password);
-                    emailService.sendSimpleEmail(adminEmail, "用户订阅即将过期", "订阅即将过期,用户名:" + share.getUniqueName() +"。使用以下链接完成自动续费："+apiUrl.replace("/loading","")+"/share/autoRenewal?uniqueName="+share.getUniqueName()+"&code="+ encryptedCode);
+                    String encryptedCode = EncryptDecryptUtil.encrypt(jsonObject.toJSONString(), password.substring(0,16));
+                    emailService.sendSimpleEmail(adminEmail, "用户订阅即将过期", "订阅即将过期,用户名:" + share.getUniqueName() +"。使用以下链接完成自动续费："+apiUrl.replace("/loading","")+"/share/autoRenewal?uniqueName="+share.getUniqueName()+"&code="+ URLEncoder.encode(encryptedCode, "UTF-8"));
                 }
             } catch (Exception ex) {
                 log.error("send share expiring email error,unique_name:{}", share.getUniqueName(), ex);

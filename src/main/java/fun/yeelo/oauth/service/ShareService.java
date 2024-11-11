@@ -549,7 +549,7 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
         }
         Share updatePO = new Share();
         try {
-            String redemptionCode = EncryptDecryptUtil.decrypt(code, user.getPassword());
+            String redemptionCode = EncryptDecryptUtil.decrypt(code, user.getPassword().substring(0,16));
             JSONObject jsonObject = JSONObject.parseObject(redemptionCode);
             if (!jsonObject.containsKey("username") || !jsonObject.containsKey("date")) {
                 return HttpResult.error("验证码解析异常");
