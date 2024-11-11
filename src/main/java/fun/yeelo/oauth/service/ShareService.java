@@ -27,6 +27,9 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -533,5 +536,36 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
             return null;
         }
         return null;
+    }
+
+    public HttpResult<String> autoRenewal(String uniqueName, String code) {
+        Share user = getByUserName(uniqueName);
+        if (user == null) {
+            return HttpResult.error("用户不存在，请联系管理员");
+        }
+        ShareGptConfig gptConfig = gptConfigService.getOne(new LambdaQueryWrapper<ShareGptConfig>().eq(ShareGptConfig::getShareId, user.getId()));
+        if (gptConfig == null) {
+            return HttpResult.error("用户未开通GPT服务");
+        }
+        Account account = accountService.getById(gptConfig.getAccountId());
+        if (account == null) {
+            return HttpResult.error("用户账号异常");
+        }
+        Share updatePO = new Share();
+        if (!this.getById(1).getPassword().equals(code)){
+            return HttpResult.error("权限校验异常");
+        }
+        if (user.getExpiresAt()!=null && !user.getExpiresAt().equals("-")){
+            String expiresAt = user.getExpiresAt();
+            LocalDate parse = LocalDate.parse(expiresAt, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            parse = parse.plusMonths(1);
+            updatePO.setId(user.getId());
+            updatePO.setExpiresAt(parse.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+        }else {
+            updatePO.setId(user.getId());
+            updatePO.setExpiresAt(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+        }
+        this.updateById(updatePO);
+        return HttpResult.success();
     }
 }

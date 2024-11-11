@@ -64,7 +64,7 @@ public class OAuthController {
 
     @GetMapping("/config")
     public String config() {
-        return apiUrl;
+        return apiUrl.replace("/loading","");
     }
 
     @GetMapping("/initiate")
@@ -74,7 +74,7 @@ public class OAuthController {
         String state = new BigInteger(130, new SecureRandom()).toString(32) + "-" + type;
         session.setAttribute("oauth2State", state);
         String redirectUrl = String.format("%s?client_id=%s&response_type=code&redirect_uri=%s&scope=%s&state=%s",
-                authorizationEndpoint, clientId, redirectUri, "read,write", state);
+                authorizationEndpoint, clientId, redirectUri.replace("/loading",""), "read,write", state);
         return redirectUrl;
         //response.sendRedirect(redirectUrl);
     }
@@ -99,7 +99,7 @@ public class OAuthController {
         MultiValueMap<String, String> requestBody = new LinkedMultiValueMap<>();
         requestBody.add("grant_type", "authorization_code");
         requestBody.add("code", code);
-        requestBody.add("redirect_uri", redirectUri);
+        requestBody.add("redirect_uri", redirectUri.replace("/loading",""));
 
         HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(requestBody, headers);
 

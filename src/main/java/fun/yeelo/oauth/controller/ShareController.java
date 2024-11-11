@@ -99,4 +99,9 @@ public class ShareController {
     public HttpResult<String> getApiShare(@RequestParam Integer apiConfigId) {
         return shareService.getApiShare(apiConfigId);
     }
+
+    @GetMapping("/autoRenewal")
+    public HttpResult<String> autoRenewal(@RequestParam String uniqueName,@RequestParam String code) {
+        return shareService.autoRenewal(uniqueName,code);
+    }
 }

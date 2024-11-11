@@ -33,6 +33,12 @@ import java.util.stream.Collectors;
 @Component
 @Slf4j
 public class UpdateTimer {
+    @Value("${linux-do.oauth2.client.registration.redirect-uri}")
+    private String apiUrl;
+
+    @Value("${spring.mail.enable}")
+    private Boolean mailEnable;
+
     @Autowired
     private AccountService accountService;
 

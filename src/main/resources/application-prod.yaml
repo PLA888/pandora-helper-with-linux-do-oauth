@@ -29,10 +29,11 @@ spring:
     change-log: classpath:db/changelog/db.changelog-master.xml
     enabled: true
   mail:
-    host: ${SMTP_MAIL_HOST}
-    port: ${SMTP_MAIL_PORT}
-    username: ${SMTP_MAIL_USERNAME}
-    password: ${SMTP_MAIL_PASSWORD}
+    enable: ${SMTP_ENABLE:false}
+    host: ${SMTP_MAIL_HOST:smtp.qq.com}
+    port: ${SMTP_MAIL_PORT:465}
+    username: ${SMTP_MAIL_USERNAME:0}
+    password: ${SMTP_MAIL_PASSWORD:0}
     properties:
       mail:
         smtp:
@@ -47,6 +48,3 @@ mybatis-plus:
 
 admin-name: ${ADMIN_NAME:admin}
 chat_site: ${CHAT_SITE}
-stmp:
-  enable: ${SMTP_ENABLE:false}
-  admin-email: ${ADMIN_EMAIL:}

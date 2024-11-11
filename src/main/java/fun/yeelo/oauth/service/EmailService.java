@@ -10,22 +10,18 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
-import java.io.File;
-
 @Service
 @Slf4j
 public class EmailService {
     @Autowired
     private JavaMailSender mailSender;
-    @Value("${smtp.admin-email}")
+    @Value("${spring.mail.username}")
     private String adminEmail;
 
     public void sendSimpleEmail(String to, String subject, String text) {
         try {
             SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom("752051085@qq.com");
+            message.setFrom(adminEmail);
             message.setTo(to);
             message.setSubject(subject);
             message.setText(text);
