@@ -1,12 +1,14 @@
 package fun.yeelo.oauth.timer;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fun.yeelo.oauth.config.CommonConst;
 import fun.yeelo.oauth.config.HttpResult;
 import fun.yeelo.oauth.domain.*;
 import fun.yeelo.oauth.service.*;
+import fun.yeelo.oauth.utils.EncryptDecryptUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -164,16 +166,23 @@ public class UpdateTimer {
         log.info("刷新share_token结束");
     }
 
-    @ConditionalOnProperty(name = "smtp.enable", havingValue = "true")
     @Scheduled(cron = "0 0 8 * * ?")
     public void sendShareExpiringEmail() {
+        if (!mailEnable) {
+            return;
+        }
         log.info("开始发送订阅过期通知");
         List<Share> shares = shareService.list().stream().filter(e -> StringUtils.hasText(e.getExpiresAt()) && !e.getExpiresAt().equals("-")).collect(Collectors.toList());
         for (Share share : shares) {
             try {
                 LocalDate expireData = LocalDate.parse(share.getExpiresAt(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
                 if (expireData.isEqual(LocalDate.now().plusDays(1))) {
-                    emailService.sendSimpleEmail(adminEmail, "用户订阅即将过期", "订阅即将过期,用户名:" + share.getUniqueName());
+                    String password = shareService.getById(1).getPassword();
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("username",share.getUniqueName());
+                    jsonObject.put("date",expireData.plusMonths(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+                    String encryptedCode = EncryptDecryptUtil.encrypt(jsonObject.toJSONString(), password);
+                    emailService.sendSimpleEmail(adminEmail, "用户订阅即将过期", "订阅即将过期,用户名:" + share.getUniqueName() +"。使用以下链接完成自动续费："+apiUrl.replace("/loading","")+"/share/autoRenewal?uniqueName="+share.getUniqueName()+"&code="+ encryptedCode);
                 }
             } catch (Exception ex) {
                 log.error("send share expiring email error,unique_name:{}", share.getUniqueName(), ex);
@@ -182,16 +191,18 @@ public class UpdateTimer {
         log.info("发送订阅过期通知结束");
     }
 
-    @ConditionalOnProperty(name = "smtp.enable", havingValue = "true")
     @Scheduled(cron = "0 0 8 * * ?")
     public void sendAccountExpiringEmail() {
+        if (!mailEnable) {
+            return;
+        }
         log.info("开始发送ChatGPT账号过期通知");
         List<Account> accounts = accountService.list().stream().filter(e -> e.getAccountType().equals(1) && StringUtils.hasText(e.getAccessToken())).collect(Collectors.toList());
         for (Account account : accounts) {
             try {
                 LocalDateTime localDateTime = checkAccount(account.getAccessToken());
-                if (localDateTime.toLocalDate().isEqual(LocalDate.now().plusDays(3))) {
-                    emailService.sendSimpleEmail(adminEmail, "ChatGPT账号过期预警", "ChatGPT即将在3天后到期,账号(邮箱):" + account.getEmail());
+                if (localDateTime.toLocalDate().isEqual(LocalDate.now().plusDays(3)) || localDateTime.toLocalDate().isBefore(LocalDate.now().plusDays(3))) {
+                    emailService.sendSimpleEmail(account.getEmail(), "ChatGPT账号过期预警", "您的ChatGPT即将到期，到期时间为："+localDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))+"，账号(邮箱):" + account.getEmail()+"，请注意及时续费。");
                 }
             } catch (Exception ex) {
                 log.error("获取chatgpt账号过期时间异常,账号:{}", account.getEmail(), ex);

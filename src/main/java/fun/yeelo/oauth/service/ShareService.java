@@ -1,5 +1,6 @@
 package fun.yeelo.oauth.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -10,6 +11,7 @@ import fun.yeelo.oauth.config.HttpResult;
 import fun.yeelo.oauth.dao.ShareMapper;
 import fun.yeelo.oauth.domain.*;
 import fun.yeelo.oauth.utils.ConvertUtil;
+import fun.yeelo.oauth.utils.EncryptDecryptUtil;
 import fun.yeelo.oauth.utils.JwtTokenUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,18 +90,16 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
     public HttpResult<Boolean> distribute(ShareVO share) {
         Account account = accountService.getById(share.getAccountId());
         Share byId = this.getById(share.getId());
-        if (share.getAccountId()!=null && share.getAccountId().equals(-1)) {
+        if (share.getAccountId() != null && share.getAccountId().equals(-1)) {
             gptConfigService.deleteShare(share.getId());
             return HttpResult.success();
-        }else if (share.getAccountId()!=null && share.getAccountId().equals(-2)) {
-            claudeConfigService.remove(new LambdaQueryWrapper<ShareClaudeConfig>().eq(ShareClaudeConfig::getShareId,share.getId()));
+        } else if (share.getAccountId() != null && share.getAccountId().equals(-2)) {
+            claudeConfigService.remove(new LambdaQueryWrapper<ShareClaudeConfig>().eq(ShareClaudeConfig::getShareId, share.getId()));
             return HttpResult.success();
-        }
-        else if (share.getAccountId()!=null && share.getAccountId().equals(-3)) {
-            apiConfigService.remove(new LambdaQueryWrapper<ShareApiConfig>().eq(ShareApiConfig::getShareId,share.getId()));
+        } else if (share.getAccountId() != null && share.getAccountId().equals(-3)) {
+            apiConfigService.remove(new LambdaQueryWrapper<ShareApiConfig>().eq(ShareApiConfig::getShareId, share.getId()));
             return HttpResult.success();
-        }
-        else if (account == null) {
+        } else if (account == null) {
             return HttpResult.error("账号不存在");
         }
 
@@ -118,7 +118,7 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
     public HttpResult<Share> getShareById(HttpServletRequest request, Integer id) {
         Share byId = getById(id);
         String token = jwtTokenUtil.getTokenFromRequest(request);
-        if (!StringUtils.hasText(token)){
+        if (!StringUtils.hasText(token)) {
             return HttpResult.error("用户未登录，请尝试刷新页面");
         }
         String username = jwtTokenUtil.extractUsername(token);
@@ -126,7 +126,7 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
         if (user == null) {
             return HttpResult.error("用户不存在，请联系管理员");
         }
-        if (user.getId()!=1 && (!byId.getId().equals(user.getId()) && !byId.getParentId().equals(user.getId()))) {
+        if (user.getId() != 1 && (!byId.getId().equals(user.getId()) && !byId.getParentId().equals(user.getId()))) {
             return HttpResult.error("你无权访问该内容");
         }
         return HttpResult.success(byId);
@@ -147,7 +147,7 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
         List<Account> accounts = accountService.findAll().stream()
                                          .filter(e -> user.getId().equals(1) || e.getUserId().equals(user.getId())
                                                                                         && (!StringUtils.hasText(emailAddr) || e.getEmail().contains(emailAddr))
-                                                                                        && (accountType==null || e.getAccountType().equals(accountType))).collect(Collectors.toList()
+                                                                                        && (accountType == null || e.getAccountType().equals(accountType))).collect(Collectors.toList()
                 );
         Map<Integer, Account> accountIdMap = accounts.stream().collect(Collectors.toMap(Account::getId, Function.identity()));
         // 筛选accountId在账号map内的
@@ -180,14 +180,15 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
             //    continue;
             //}
             if (share.getId().equals(user.getId())) {
-                share.setUniqueName(share.getUniqueName()+"(我)");
+                share.setUniqueName(share.getUniqueName() + "(我)");
                 share.setSelf(true);
             }
             share.setCurAdminId(user.getId());
             if (gptConfig != null) {
-                int total = gptAccountMap.getOrDefault(gptConfig.getAccountId(),new ArrayList<>()).size();
+                int total = gptAccountMap.getOrDefault(gptConfig.getAccountId(), new ArrayList<>()).size();
                 share.setGptEmail(accountService.getById(gptConfig.getAccountId()).getEmail());
-                share.setGptCarName(accountService.getById(gptConfig.getAccountId()).getName());;
+                share.setGptCarName(accountService.getById(gptConfig.getAccountId()).getName());
+                ;
                 share.setGptUserCount(total);
                 share.setGptConfigId(gptConfig.getId());
             } else {
@@ -196,7 +197,7 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
             }
 
             if (claudeConfig != null) {
-                int total = claudeAccountMap.getOrDefault(claudeConfig.getAccountId(),new ArrayList<>()).size();
+                int total = claudeAccountMap.getOrDefault(claudeConfig.getAccountId(), new ArrayList<>()).size();
                 share.setClaudeEmail(accountService.getById(claudeConfig.getAccountId()).getEmail());
                 share.setClaudeCarName(accountService.getById(claudeConfig.getAccountId()).getName());
                 share.setClaudeUserCount(total);
@@ -208,7 +209,7 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
             }
 
             if (apiConfig != null) {
-                int total = apiAccountMap.getOrDefault(apiConfig.getAccountId(),new ArrayList<>()).size();
+                int total = apiAccountMap.getOrDefault(apiConfig.getAccountId(), new ArrayList<>()).size();
                 share.setApiCarName(accountService.getById(apiConfig.getAccountId()).getName());
                 share.setApiUserCount(total);
 
@@ -223,18 +224,16 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
             share.setPassword(null);
         }
         if (StringUtils.hasText(emailAddr)) {
-            if (accountType==null){
-                shareVOS = shareVOS.stream().filter(e-> (e.getGptEmail()!=null && e.getGptEmail().contains(emailAddr))|| (e.getClaudeEmail()!=null && e.getClaudeEmail().contains(emailAddr))||e.getUniqueName().contains(emailAddr)).collect(Collectors.toList());
-            }
-            else if (accountType.equals(1)) {
-                shareVOS = shareVOS.stream().filter(e-> (e.getGptEmail()!=null && e.getGptEmail().contains(emailAddr))||e.getUniqueName().contains(emailAddr)).collect(Collectors.toList());
-            }
-            else if (accountType.equals(2)) {
-                shareVOS = shareVOS.stream().filter(e-> (e.getClaudeEmail()!=null && e.getClaudeEmail().contains(emailAddr))||e.getUniqueName().contains(emailAddr)).collect(Collectors.toList());
+            if (accountType == null) {
+                shareVOS = shareVOS.stream().filter(e -> (e.getGptEmail() != null && e.getGptEmail().contains(emailAddr)) || (e.getClaudeEmail() != null && e.getClaudeEmail().contains(emailAddr)) || e.getUniqueName().contains(emailAddr)).collect(Collectors.toList());
+            } else if (accountType.equals(1)) {
+                shareVOS = shareVOS.stream().filter(e -> (e.getGptEmail() != null && e.getGptEmail().contains(emailAddr)) || e.getUniqueName().contains(emailAddr)).collect(Collectors.toList());
+            } else if (accountType.equals(2)) {
+                shareVOS = shareVOS.stream().filter(e -> (e.getClaudeEmail() != null && e.getClaudeEmail().contains(emailAddr)) || e.getUniqueName().contains(emailAddr)).collect(Collectors.toList());
             }
         }
         PageVO<ShareVO> pageVO = new PageVO<>();
-        pageVO.setData(page==null?shareVOS:shareVOS.subList(Math.min(10*(page-1),shareVOS.size()-1),Math.min(10*(page-1)+size,shareVOS.size())));
+        pageVO.setData(page == null ? shareVOS : shareVOS.subList(Math.min(10 * (page - 1), shareVOS.size() - 1), Math.min(10 * (page - 1) + size, shareVOS.size())));
         pageVO.setTotal(shareVOS.size());
         return HttpResult.success(pageVO);
     }
@@ -254,7 +253,7 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
         if (share != null && user.getId().equals(1)) {
             removeById(id);
             ShareGptConfig one = gptConfigService.getOne(new LambdaQueryWrapper<ShareGptConfig>().eq(ShareGptConfig::getShareId, id));
-            if (one!=null) {
+            if (one != null) {
                 gptAccount = accountService.getById(one.getAccountId());
             }
             gptConfigService.remove(new LambdaQueryWrapper<ShareGptConfig>().eq(ShareGptConfig::getShareId, id));
@@ -264,7 +263,7 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
         }
 
         // 删除oaifree的share token
-        if (gptAccount!=null) {
+        if (gptAccount != null) {
             try {
                 HttpHeaders headers = new HttpHeaders();
                 headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -321,7 +320,7 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
             case 1:
                 return gptConfigService.addShare(account, dto.getUniqueName(), shareId, null);
             case 2:
-                return claudeConfigService.addShare(account, shareId,null);
+                return claudeConfigService.addShare(account, shareId, null);
             case 3:
                 return apiConfigService.addShare(account, shareId, null);
             default:
@@ -340,7 +339,7 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
         if (user == null) {
             return HttpResult.error("用户不存在，请联系管理员");
         }
-        if (dto.getId()==null){
+        if (dto.getId() == null) {
             log.error("更新用户出错，用户id为空");
             return HttpResult.error("更新用户异常，用户id为空");
         }
@@ -349,11 +348,11 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
 
         Share updateVo = new Share();
         if (user.getId().equals(share.getParentId())) {
-            updateVo.setExpiresAt(StringUtils.hasText(dto.getExpiresAt())  ? dto.getExpiresAt() : "-");
+            updateVo.setExpiresAt(StringUtils.hasText(dto.getExpiresAt()) ? dto.getExpiresAt() : "-");
         }
         updateVo.setId(dto.getId());
 
-        updateVo.setComment(dto.getComment()==null ? "" : dto.getComment());
+        updateVo.setComment(dto.getComment() == null ? "" : dto.getComment());
         updateById(updateVo);
         return HttpResult.success(true);
     }
@@ -370,18 +369,15 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
         }
         Account account = accountService.getById(share.getAccountId());
         Share byId = getById(share.getId());
-        if (share.getAccountId()!=null && share.getAccountId().equals(-1)) {
+        if (share.getAccountId() != null && share.getAccountId().equals(-1)) {
             return gptConfigService.deleteShare(share.getId());
-        }
-        else if (share.getAccountId()!=null && share.getAccountId().equals(-2)) {
-            claudeConfigService.remove(new LambdaQueryWrapper<ShareClaudeConfig>().eq(ShareClaudeConfig::getShareId,share.getId()));
+        } else if (share.getAccountId() != null && share.getAccountId().equals(-2)) {
+            claudeConfigService.remove(new LambdaQueryWrapper<ShareClaudeConfig>().eq(ShareClaudeConfig::getShareId, share.getId()));
             return HttpResult.success();
-        }
-        else if (share.getAccountId()!=null && share.getAccountId().equals(-3)) {
-            apiConfigService.remove(new LambdaQueryWrapper<ShareApiConfig>().eq(ShareApiConfig::getShareId,share.getId()));
+        } else if (share.getAccountId() != null && share.getAccountId().equals(-3)) {
+            apiConfigService.remove(new LambdaQueryWrapper<ShareApiConfig>().eq(ShareApiConfig::getShareId, share.getId()));
             return HttpResult.success();
-        }
-        else if (account == null) {
+        } else if (account == null) {
             return HttpResult.error("账号不存在");
         }
 
@@ -389,7 +385,7 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
             case 1:
                 return gptConfigService.addShare(account, byId.getUniqueName(), byId.getId(), null);
             case 2:
-                return claudeConfigService.addShare(account, byId.getId(),null);
+                return claudeConfigService.addShare(account, byId.getId(), null);
             case 3:
                 return apiConfigService.addShare(account, byId.getId(), null);
             default:
@@ -449,17 +445,17 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
         }
         String username = jwtTokenUtil.extractUsername(token);
         Share user = getByUserName(username);
-        if (user==null){
+        if (user == null) {
             return HttpResult.error("用户不存在，请联系管理员");
         }
         Share byId = getById(shareId);
-        if (byId!=null && byId.getParentId().equals(user.getId())){
+        if (byId != null && byId.getParentId().equals(user.getId())) {
             byId.setParentId(user.getParentId());
             Share update = new Share();
             update.setId(shareId);
             update.setParentId(shareId);
             updateById(update);
-        }else {
+        } else {
             return HttpResult.error("您无权进行该操作");
         }
 
@@ -470,11 +466,11 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
         ShareClaudeConfig claudeShare = claudeConfigService.getById(claudeConfigId);
         Account account = accountService.getById(claudeShare.getAccountId());
         Share share = getById(claudeShare.getShareId());
-        String token = claudeConfigService.generateAutoToken(account, share,null);
+        String token = claudeConfigService.generateAutoToken(account, share, null);
 
-        if (token==null){
+        if (token == null) {
             return HttpResult.error("获取登录信息失败");
-        }else {
+        } else {
             return HttpResult.success(token);
         }
     }
@@ -482,16 +478,16 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
     public HttpResult<String> getApiShare(Integer apiConfigId) {
         ShareApiConfig apiShare = apiConfigService.getById(apiConfigId);
         Account account = accountService.getById(apiShare.getAccountId());
-        String token = chatSite +"/#/?settings={%22key%22:%22"+ account.getRefreshToken()+"%22,%22url%22:%22"+account.getAccessToken()+"%22}";
+        String token = chatSite + "/#/?settings={%22key%22:%22" + account.getRefreshToken() + "%22,%22url%22:%22" + account.getAccessToken() + "%22}";
 
-        if (token==null){
+        if (token == null) {
             return HttpResult.error("获取登录信息失败");
-        }else {
+        } else {
             return HttpResult.success(token);
         }
     }
 
-    public String generateGPTUrl(Share share,Account account){
+    public String generateGPTUrl(Share share, Account account) {
         String shareToken = "";
         try {
             log.info("开始新增share");
@@ -552,19 +548,22 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
             return HttpResult.error("用户账号异常");
         }
         Share updatePO = new Share();
-        if (!this.getById(1).getPassword().equals(code)){
-            return HttpResult.error("权限校验异常");
-        }
-        if (user.getExpiresAt()!=null && !user.getExpiresAt().equals("-")){
-            String expiresAt = user.getExpiresAt();
-            LocalDate parse = LocalDate.parse(expiresAt, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-            parse = parse.plusMonths(1);
+        try {
+            String redemptionCode = EncryptDecryptUtil.decrypt(code, user.getPassword());
+            JSONObject jsonObject = JSONObject.parseObject(redemptionCode);
+            if (!jsonObject.containsKey("username") || !jsonObject.containsKey("date")) {
+                return HttpResult.error("验证码解析异常");
+            }
+            if (!jsonObject.getString("username").equals(user.getUniqueName())) {
+                return HttpResult.error("用户名校验异常");
+            }
             updatePO.setId(user.getId());
-            updatePO.setExpiresAt(parse.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
-        }else {
-            updatePO.setId(user.getId());
-            updatePO.setExpiresAt(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+            updatePO.setExpiresAt(jsonObject.getString("date"));
+
+        } catch (Exception exception) {
+            return HttpResult.error("验证码校验异常");
         }
+
         this.updateById(updatePO);
         return HttpResult.success();
     }

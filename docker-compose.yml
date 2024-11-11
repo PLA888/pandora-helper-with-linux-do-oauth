@@ -13,8 +13,13 @@ services:
       TZ: "Asia/Shanghai"
       ADMIN_NAME: "Admin"                             # 6.管理员用户名，建议填写你在linux-do的用户名，默认密码是123456
       CHAT_SITE: "https://next.yeelo.top"             # 7.填写你的ChatGPTNextWeb地址
+      SMTP_ENABLE: true                               # 8.是否启用邮件提醒,true/false,如果是false，可以不配置下方邮件服务器信息
+      SMTP_MAIL_HOST: "smtp.qq.com"                   # 9.邮件服务器地址
+      SMTP_MAIL_PORT: 465                             # 10.邮件服务器端口
+      SMTP_MAIL_USERNAME: "your_username"             # 11.邮件服务器用户名
+      SMTP_MAIL_PASSWORD: "your_password"             # 12.邮件服务器密码
     ports:
-      - "8181:8181"                                   # 8.如需修改端口，请修改第一个8181为你需要访问的服务器端口
+      - "8181:8181"                                   # 13.如需修改端口，请修改第一个8181为你需要访问的服务器端口
     restart: always
 
 volumes:

@@ -1,4 +1,6 @@
 # 1.界面展示
+前端项目已开源，请参见：https://github.com/Kylsky/pandora-helper-frontend
+
 <img width="1547" alt="image" src="https://github.com/user-attachments/assets/ffc4484d-3c48-4de3-8ad9-f2e56e965e24">
 <img width="1547" alt="image" src="https://github.com/user-attachments/assets/41520e74-3bff-4f6d-bcb3-81646f6232ff">
 <img width="1547" alt="image" src="https://github.com/user-attachments/assets/3e145d37-6ac1-4558-a455-04ce7087c1dc">
@@ -30,8 +32,13 @@ docker run
 -e REDIRECT_URI=                                    # 5.你的应用跳转地址
 -e ADMIN_NAME=                                      # 6.管理员用户名，建议填写你在linux-do的用户名，默认密码是123456
 -e CHAT_SITE=https://xx.xx                          # 7.填写你的ChatGPTNextWeb地址
---restart=always                                    # 8.如需修改端口，请修改第一个8181为你需要访问的服务器端口
--p 8181:8181 --name pandora-helper
+-e SMTP_ENABLE=true                                 # 8.是否启用邮件提醒,true/false,如果是false，可以不配置下方邮件服务器信息
+-e SMTP_MAIL_HOST=smtp.qq.com                       # 9.邮件服务器地址
+-e SMTP_MAIL_PORT=465                               # 10.邮件服务器端口
+-e SMTP_MAIL_USERNAME=                              # 11.邮件服务器用户名
+-e SMTP_MAIL_PASSWORD=                              # 12.邮件服务器密码
+--restart=always                                    
+-p 8181:8181 --name pandora-helper                  # 13.如需修改端口，请修改第一个8181为你需要访问的服务器端口
  kylsky/pandora_helper_v2
 ```
 下面是一个例子：
@@ -50,6 +57,11 @@ docker run \
 -e REDIRECT_URI=https://my.helper.com \
 -e ADMIN_NAME=Admin \
 -e CHAT_SITE=https://next.yeelo.top \
+-e SMTP_ENABLE=true                                 
+-e SMTP_MAIL_HOST=smtp.qq.com                       
+-e SMTP_MAIL_PORT=465                               
+-e SMTP_MAIL_USERNAME=your_uername                              
+-e SMTP_MAIL_PASSWORD=your_password                              
 --restart=always \
 -p 8181:8181 --name pandora-helper \
  kylsky/pandora_helper_v2
@@ -68,6 +80,7 @@ docker run \
 - 基于oairfree的用户级别账号用量统计
 - access token的定时刷新，减少人工运维成本（需要refresh_token）
 - 支持基于ChatGPTNextWeb的API共享
+- 支持ChatGPT的账号过期邮件提醒、用户订阅到期邮件提醒、及自动激活
 
 使用教程请参考： https://linux.do/t/topic/173810
 
