@@ -5,7 +5,7 @@
 <img width="1547" alt="image" src="https://github.com/user-attachments/assets/41520e74-3bff-4f6d-bcb3-81646f6232ff">
 <img width="1547" alt="image" src="https://github.com/user-attachments/assets/3e145d37-6ac1-4558-a455-04ce7087c1dc">
 <img width="1547" alt="image" src="https://github.com/user-attachments/assets/3bee941c-987f-4301-a937-47904c12f57f">
-<img width="1547" alt="image" src="https://github.com/user-attachments/assets/53a561cf-105c-498f-b0b2-12d62c6424aa">
+<img width="1547" alt="image" src="https://github.com/user-attachments/assets/bd28e24c-aa29-455d-a19a-82234f161010">
 <img width="1547" alt="image" src="https://github.com/user-attachments/assets/838b407d-df83-4f42-a5f1-dc811913af7f">
 
 # 2.安装教程
