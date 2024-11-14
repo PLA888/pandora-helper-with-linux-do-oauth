@@ -48,3 +48,7 @@ mybatis-plus:
 
 admin-name: ${ADMIN_NAME:admin}
 chat_site: ${CHAT_SITE}
+
+mirror:
+  enable: ${MIRROR_ENABLE:false}
+  host: ${MIRROR_HOST:https://chat.yeelo.fun}

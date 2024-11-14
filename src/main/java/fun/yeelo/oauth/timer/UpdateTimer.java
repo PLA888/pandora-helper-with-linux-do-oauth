@@ -117,6 +117,7 @@ public class UpdateTimer {
                     Account updateDTO = new Account();
                     updateDTO.setId(accountId);
                     updateDTO.setAccessToken(newToken);
+                    updateDTO.setUpdateTime(LocalDateTime.now());
                     accountService.saveOrUpdate(updateDTO);
                 }
             } catch (Exception e) {

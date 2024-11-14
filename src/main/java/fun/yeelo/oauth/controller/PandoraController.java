@@ -59,6 +59,12 @@ public class PandoraController {
     @Value("${linux-do.oaifree.token-api}")
     private String tokenUrl;
 
+    @Value("${mirror.enable}")
+    private Boolean mirrorEnable;
+
+    @Value("${mirror.host}")
+    private String mirrorHost;
+
     @Autowired
     private ShareService shareService;
 
@@ -100,26 +106,52 @@ public class PandoraController {
         }
         BeanUtils.copyProperties(user, res);
 
-        try {
+        if (mirrorEnable) {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
-
+            headers.add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36");
             ObjectNode personJsonObject = objectMapper.createObjectNode();
-            personJsonObject.put("share_token", byShareId.getShareToken());
-            ResponseEntity<String> stringResponseEntity = restTemplate.postForEntity(tokenUrl, new HttpEntity<>(personJsonObject, headers), String.class);
-            Map map = objectMapper.readValue(stringResponseEntity.getBody(), Map.class);
-            if (map.containsKey("login_url")) {
-                String loginUrl = map.get("login_url").toString();
-                loginUrl = loginUrl.replace(DEFAULT_AUTH_URL, authUrl);
-                res.setAddress(loginUrl);
+            personJsonObject.put("user_name", username);
+            personJsonObject.put("isolated_session",true);
+            personJsonObject.put("access_token",accountService.getById(byShareId.getAccountId()).getAccessToken());
 
-                // 打印user信息，用json
-                log.info("Check user:{}", res);
+            ResponseEntity<String> stringResponseEntity = restTemplate.postForEntity(mirrorHost+"/api/login", new HttpEntity<>(personJsonObject, headers), String.class);
+            try {
+                Map map = objectMapper.readValue(stringResponseEntity.getBody(), Map.class);
+                if (map.containsKey("user-gateway-token")) {
+                    String gatewayToken = map.get("user-gateway-token").toString();
+                    res.setAddress(mirrorHost+"/api/not-login?user_gateway_token="+gatewayToken);
+                    return HttpResult.success(res);
+                }else {
+                    return HttpResult.error("获取Gateway Token 异常");
+                }
+            } catch (IOException e) {
+                log.error("Check user error:", e);
+                return HttpResult.error("系统内部异常");
             }
-        } catch (IOException e) {
-            log.error("Check user error:", e);
+        }else {
+            try {
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+
+                ObjectNode personJsonObject = objectMapper.createObjectNode();
+                personJsonObject.put("share_token", byShareId.getShareToken());
+                ResponseEntity<String> stringResponseEntity = restTemplate.postForEntity(tokenUrl, new HttpEntity<>(personJsonObject, headers), String.class);
+                Map map = objectMapper.readValue(stringResponseEntity.getBody(), Map.class);
+                if (map.containsKey("login_url")) {
+                    String loginUrl = map.get("login_url").toString();
+                    loginUrl = loginUrl.replace(DEFAULT_AUTH_URL, authUrl);
+                    res.setAddress(loginUrl);
+
+                    // 打印user信息，用json
+                    log.info("Check user:{}", res);
+                }
+            } catch (IOException e) {
+                log.error("Check user error:", e);
+            }
+            return HttpResult.success(res);
         }
-        return HttpResult.success(res);
+
     }
 
     @PostMapping("/reset")
@@ -173,30 +205,53 @@ public class PandoraController {
             return HttpResult.error("密码错误，请重试");
         }
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36");
 
+        if (mirrorEnable) {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36");
+            ObjectNode personJsonObject = objectMapper.createObjectNode();
+            personJsonObject.put("user_name", username);
+            personJsonObject.put("isolated_session",true);
+            personJsonObject.put("access_token",accountService.getById(gptShare.getAccountId()).getAccessToken());
 
-        ObjectNode personJsonObject = objectMapper.createObjectNode();
-        personJsonObject.put("share_token", gptShare.getShareToken());
-        ResponseEntity<String> stringResponseEntity = restTemplate.postForEntity(tokenUrl, new HttpEntity<>(personJsonObject, headers), String.class);
-        ShareVO res = new ShareVO();
-        BeanUtils.copyProperties(user, res);
-        try {
-            Map map = objectMapper.readValue(stringResponseEntity.getBody(), Map.class);
-            if (map.containsKey("login_url")) {
-                String loginUrl = map.get("login_url").toString();
-                loginUrl = loginUrl.replace(DEFAULT_AUTH_URL, authUrl);
-                res.setAddress(loginUrl);
-                // 打印user信息，用json
-                log.info("Check user:{}", res);
+            ResponseEntity<String> stringResponseEntity = restTemplate.postForEntity(mirrorHost+"/api/login", new HttpEntity<>(personJsonObject, headers), String.class);
+            try {
+                Map map = objectMapper.readValue(stringResponseEntity.getBody(), Map.class);
+                if (map.containsKey("user-gateway-token")) {
+                    String gatewayToken = map.get("user-gateway-token").toString();
+                    return HttpResult.success(mirrorHost+"/api/not-login?user_gateway_token="+gatewayToken);
+                }else {
+                    return HttpResult.error("获取Gateway Token 异常");
+                }
+            } catch (IOException e) {
+                log.error("Check user error:", e);
+                return HttpResult.error("系统内部异常");
             }
-        } catch (IOException e) {
-            log.error("Check user error:", e);
-            return HttpResult.error("系统内部异常");
-        }
-        return HttpResult.success(res.getAddress());
+        }else {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36");
 
+            ObjectNode personJsonObject = objectMapper.createObjectNode();
+            personJsonObject.put("share_token", gptShare.getShareToken());
+            ResponseEntity<String> stringResponseEntity = restTemplate.postForEntity(tokenUrl, new HttpEntity<>(personJsonObject, headers), String.class);
+            ShareVO res = new ShareVO();
+            BeanUtils.copyProperties(user, res);
+            try {
+                Map map = objectMapper.readValue(stringResponseEntity.getBody(), Map.class);
+                if (map.containsKey("login_url")) {
+                    String loginUrl = map.get("login_url").toString();
+                    loginUrl = loginUrl.replace(DEFAULT_AUTH_URL, authUrl);
+                    res.setAddress(loginUrl);
+                    // 打印user信息，用json
+                    log.info("Check user:{}", res);
+                }
+            } catch (IOException e) {
+                log.error("Check user error:", e);
+                return HttpResult.error("系统内部异常");
+            }
+            return HttpResult.success(res.getAddress());
+        }
     }
 }

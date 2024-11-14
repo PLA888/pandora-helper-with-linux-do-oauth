@@ -21,6 +21,21 @@ linux-do:
         user-info-uri: https://connect.linux.do/api/user
         user-name-attribute: id
 spring:
+  mail:
+    enable: ${SMTP_ENABLE:false}
+    host: ${SMTP_MAIL_HOST:smtp.qq.com}
+    port: ${SMTP_MAIL_PORT:465}
+    username: ${SMTP_MAIL_USERNAME:0}
+    password: ${SMTP_MAIL_PASSWORD:0}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+          socket:
+            factory:
+              class: javax.net.ssl.SSLSocketFactory
   jpa:
     database-platform: org.hibernate.dialect.MySQLDialect
   datasource:

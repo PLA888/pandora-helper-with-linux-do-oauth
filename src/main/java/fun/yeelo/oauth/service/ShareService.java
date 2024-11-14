@@ -61,13 +61,18 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
     private JwtTokenUtil jwtTokenUtil;
     @Autowired
     private PasswordEncoder passwordEncoder;
-
+    @Value("${mirror.host}")
+    private String mirrorHost;
+    @Value("${mirror.enable}")
+    private Boolean mirrorEnable;
     @Value("${linux-do.oaifree.token-api}")
     private String tokenUrl;
     @Value("${linux-do.oaifree.auth-api}")
     private String authUrl;
     @Value("${chat_site:https://next.yeelo.top}")
     private String chatSite;
+    @Autowired
+    private ShareService shareService;
 
 
     public List<Share> findAll() {
@@ -420,22 +425,45 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36");
 
-        ObjectNode personJsonObject = objectMapper.createObjectNode();
-        personJsonObject.put("share_token", gptShare.getShareToken());
-        ResponseEntity<String> stringResponseEntity = restTemplate.postForEntity(tokenUrl, new HttpEntity<>(personJsonObject, headers), String.class);
-        try {
-            Map map = objectMapper.readValue(stringResponseEntity.getBody(), Map.class);
-            if (map.containsKey("login_url")) {
-                String loginUrl = map.get("login_url").toString();
-                loginUrl = loginUrl.replace(CommonConst.DEFAULT_AUTH_URL, authUrl);
-                log.info("获取login url成功:{}", loginUrl);
-                return HttpResult.success(loginUrl);
+        if (mirrorEnable) {
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36");
+            ObjectNode personJsonObject = objectMapper.createObjectNode();
+            personJsonObject.put("user_name", shareService.getById(gptShare.getShareId()).getUniqueName());
+            personJsonObject.put("isolated_session",true);
+            personJsonObject.put("access_token",accountService.getById(gptShare.getAccountId()).getAccessToken());
+
+            ResponseEntity<String> stringResponseEntity = restTemplate.postForEntity(mirrorHost+"/api/login", new HttpEntity<>(personJsonObject, headers), String.class);
+            try {
+                Map map = objectMapper.readValue(stringResponseEntity.getBody(), Map.class);
+                if (map.containsKey("user-gateway-token")) {
+                    String gatewayToken = map.get("user-gateway-token").toString();
+                    return HttpResult.success(mirrorHost+"/api/not-login?user_gateway_token="+gatewayToken);
+                }else {
+                    return HttpResult.error("获取Gateway Token 异常");
+                }
+            } catch (IOException e) {
+                log.error("Check user error:", e);
+                return HttpResult.error("系统内部异常");
             }
-        } catch (IOException e) {
-            log.error("Check user error:", e);
-            return HttpResult.error("获取登录信息异常");
+        }else {
+            ObjectNode personJsonObject = objectMapper.createObjectNode();
+            personJsonObject.put("share_token", gptShare.getShareToken());
+            ResponseEntity<String> stringResponseEntity = restTemplate.postForEntity(tokenUrl, new HttpEntity<>(personJsonObject, headers), String.class);
+            try {
+                Map map = objectMapper.readValue(stringResponseEntity.getBody(), Map.class);
+                if (map.containsKey("login_url")) {
+                    String loginUrl = map.get("login_url").toString();
+                    loginUrl = loginUrl.replace(CommonConst.DEFAULT_AUTH_URL, authUrl);
+                    log.info("获取login url成功:{}", loginUrl);
+                    return HttpResult.success(loginUrl);
+                }
+            } catch (IOException e) {
+                log.error("Check user error:", e);
+                return HttpResult.error("获取登录信息异常");
+            }
+            return HttpResult.error("获取登录信息失败");
         }
-        return HttpResult.error("获取登录信息失败");
     }
 
     public HttpResult<Boolean> updateParent(Integer shareId, HttpServletRequest request) {
