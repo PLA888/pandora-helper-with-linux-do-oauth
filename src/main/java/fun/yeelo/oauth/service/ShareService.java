@@ -176,7 +176,7 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
                                                       .collect(Collectors.toMap(ShareApiConfig::getShareId, Function.identity()));
 
         // 设置邮箱
-        shareVOS = shareVOS.stream().filter(e -> user.getId().equals(1) || e.getId().equals(user.getId()) || (claudeMap.containsKey(e.getId()) || gptMap.containsKey(e.getId()))).collect(Collectors.toList());
+        shareVOS = shareVOS.stream().filter(e -> user.getId().equals(1) || e.getParentId().equals(user.getId())|| e.getId().equals(user.getId()) || (claudeMap.containsKey(e.getId()) || gptMap.containsKey(e.getId()))).collect(Collectors.toList());
         for (ShareVO share : shareVOS) {
             ShareGptConfig gptConfig = gptMap.get(share.getId());
             ShareClaudeConfig claudeConfig = claudeMap.get(share.getId());
@@ -255,7 +255,7 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
         }
         Share share = findById(id);
         Account gptAccount = null;
-        if (share != null && user.getId().equals(1)) {
+        if (share != null && (user.getId().equals(1) || user.getId().equals(share.getId())) || user.getId().equals(share.getParentId())) {
             removeById(id);
             ShareGptConfig one = gptConfigService.getOne(new LambdaQueryWrapper<ShareGptConfig>().eq(ShareGptConfig::getShareId, id));
             if (one != null) {
