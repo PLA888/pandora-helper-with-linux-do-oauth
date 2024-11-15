@@ -73,7 +73,7 @@ public class UpdateTimer {
     @ConditionalOnProperty(name = "smtp.enable", havingValue = "true")
     public void init() {
         log.info("启动预检");
-        CompletableFuture.runAsync(()->{
+        CompletableFuture.runAsync(() -> {
             sendAccountExpiringEmail();
             sendShareExpiringEmail();
         });
@@ -124,6 +124,15 @@ public class UpdateTimer {
                 log.error("刷新access_token异常,异常账号:{}", account.getEmail(), e);
             }
         });
+
+        if (mailEnable) {
+            accounts.forEach(account -> {
+                LocalDateTime updateTime = account.getUpdateTime();
+                if (updateTime != null && updateTime.toLocalDate().plusDays(9).isEqual(LocalDateTime.now().toLocalDate())) {
+                    emailService.sendSimpleEmail(adminEmail, "ACCESS_TOKEN过期提醒", "ACCESS_TOKEN即将过期,账号（邮箱）:"+account.getEmail());
+                }
+            });
+        }
         log.info("刷新access_token结束");
     }
 
@@ -184,10 +193,10 @@ public class UpdateTimer {
                 if (expireData.isEqual(LocalDate.now().plusDays(1))) {
                     String password = share.getPassword();
                     JSONObject jsonObject = new JSONObject();
-                    jsonObject.put("username",share.getUniqueName());
-                    jsonObject.put("date",expireData.plusMonths(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
-                    String encryptedCode = EncryptDecryptUtil.encrypt(jsonObject.toJSONString(), password.substring(0,16));
-                    emailService.sendSimpleEmail(adminEmail, "用户订阅即将过期", "订阅即将过期,用户名:" + share.getUniqueName() +"。使用以下链接完成自动续费："+apiUrl.replace("/loading","")+"/share/autoRenewal?uniqueName="+share.getUniqueName()+"&code="+ URLEncoder.encode(encryptedCode, "UTF-8"));
+                    jsonObject.put("username", share.getUniqueName());
+                    jsonObject.put("date", expireData.plusMonths(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+                    String encryptedCode = EncryptDecryptUtil.encrypt(jsonObject.toJSONString(), password.substring(0, 16));
+                    emailService.sendSimpleEmail(adminEmail, "用户订阅即将过期", "订阅即将过期,用户名:" + share.getUniqueName() + "。使用以下链接完成自动续费：" + apiUrl.replace("/loading", "") + "/share/autoRenewal?uniqueName=" + share.getUniqueName() + "&code=" + URLEncoder.encode(encryptedCode, "UTF-8"));
                 }
             } catch (Exception ex) {
                 log.error("send share expiring email error,unique_name:{}", share.getUniqueName(), ex);
@@ -207,7 +216,7 @@ public class UpdateTimer {
             try {
                 LocalDateTime localDateTime = checkAccount(account.getAccessToken());
                 if (localDateTime.toLocalDate().isEqual(LocalDate.now().plusDays(3)) || localDateTime.toLocalDate().isBefore(LocalDate.now().plusDays(3))) {
-                    emailService.sendSimpleEmail(account.getEmail(), "ChatGPT账号过期预警", "您的ChatGPT即将到期，到期时间为："+localDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))+"，账号(邮箱):" + account.getEmail()+"，请注意及时续费。");
+                    emailService.sendSimpleEmail(account.getEmail(), "ChatGPT账号过期预警", "您的ChatGPT即将到期，到期时间为：" + localDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "，账号(邮箱):" + account.getEmail() + "，请注意及时续费。");
                 }
             } catch (Exception ex) {
                 log.error("获取chatgpt账号过期时间异常,账号:{}", account.getEmail(), ex);
@@ -273,7 +282,7 @@ public class UpdateTimer {
             //} else {
             //    throw new RuntimeException("账户请求失败: " + response.getStatusCodeValue());
             //}
-            return LocalDateTime.parse(JSON.parseObject(response.getBody()).getJSONObject("accounts").getJSONObject("default").getJSONObject("entitlement").getString("expires_at"),DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX"));
+            return LocalDateTime.parse(JSON.parseObject(response.getBody()).getJSONObject("accounts").getJSONObject("default").getJSONObject("entitlement").getString("expires_at"), DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX"));
         } catch (RestClientException e) {
             throw new RuntimeException("账户请求失败: " + e.getMessage());
         }
