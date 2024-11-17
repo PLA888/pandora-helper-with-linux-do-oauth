@@ -263,6 +263,7 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
             }
             gptConfigService.remove(new LambdaQueryWrapper<ShareGptConfig>().eq(ShareGptConfig::getShareId, id));
             claudeConfigService.remove(new LambdaQueryWrapper<ShareClaudeConfig>().eq(ShareClaudeConfig::getShareId, id));
+            apiConfigService.remove(new LambdaQueryWrapper<ShareApiConfig>().eq(ShareApiConfig::getShareId, id));
         } else {
             return HttpResult.error("您无权删除该账号");
         }
@@ -429,7 +430,8 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36");
             ObjectNode personJsonObject = objectMapper.createObjectNode();
-            personJsonObject.put("user_name", shareService.getById(gptShare.getShareId()).getUniqueName());
+            String uniqueName = shareService.getById(gptShare.getShareId()).getUniqueName();
+            personJsonObject.put("user_name", uniqueName.length() < 4 ? uniqueName+"####" : uniqueName);
             personJsonObject.put("isolated_session",true);
             personJsonObject.put("access_token",accountService.getById(gptShare.getAccountId()).getAccessToken());
 
@@ -446,7 +448,8 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
                 log.error("Check user error:", e);
                 return HttpResult.error("系统内部异常");
             }
-        }else {
+        }
+        else {
             ObjectNode personJsonObject = objectMapper.createObjectNode();
             personJsonObject.put("share_token", gptShare.getShareToken());
             ResponseEntity<String> stringResponseEntity = restTemplate.postForEntity(tokenUrl, new HttpEntity<>(personJsonObject, headers), String.class);

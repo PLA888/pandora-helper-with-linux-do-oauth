@@ -299,7 +299,7 @@ public class AccountService extends ServiceImpl<AccountMapper, Account> implemen
         if (user == null) {
             return HttpResult.error("用户不存在，请联系管理员");
         }
-        if (!byId.getUserId().equals(user.getId()) || user.getId() != 1) {
+        if (!byId.getUserId().equals(user.getId()) && user.getId() != 1) {
             return HttpResult.error("你无权访问该账号");
         }
         return HttpResult.success(byId);
