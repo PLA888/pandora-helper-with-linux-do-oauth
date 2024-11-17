@@ -47,7 +47,7 @@ mybatis-plus:
   mapper-locations: classpath*:mapper/**/*.xml
 
 admin-name: ${ADMIN_NAME:admin}
-chat_site: ${CHAT_SITE}
+chat_site: ${CHAT_SITE:https://next.yeelo.top}
 
 mirror:
   enable: ${MIRROR_ENABLE:false}
