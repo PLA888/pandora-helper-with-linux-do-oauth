@@ -60,6 +60,8 @@ public class AccountService extends ServiceImpl<AccountMapper, Account> implemen
     private RestTemplate restTemplate;
     @Autowired
     private CarService carService;
+    @Autowired
+    private ApiConfigService apiConfigService;
 
     public List<Account> findAll() {
         return accountMapper.selectList(null);
@@ -279,6 +281,9 @@ public class AccountService extends ServiceImpl<AccountMapper, Account> implemen
                     break;
                 case 2:
                     claudeConfigService.remove(new LambdaQueryWrapper<ShareClaudeConfig>().eq(ShareClaudeConfig::getAccountId, id));
+                    break;
+                case 3:
+                    apiConfigService.remove(new LambdaQueryWrapper<ShareApiConfig>().eq(ShareApiConfig::getAccountId,id));
                     break;
             }
         } else {

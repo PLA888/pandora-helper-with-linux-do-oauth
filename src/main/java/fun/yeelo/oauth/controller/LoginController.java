@@ -102,7 +102,7 @@ public class LoginController {
         if (!passwordEncoder.matches(password,user.getPassword())){
             return HttpResult.error("密码错误,请重试");
         }
-        final UserDetails userDetails = userDetailsService.loadUserByUsername(loginDTO.getUsername());
+        UserDetails userDetails = userDetailsService.loadUserByUsername(loginDTO.getUsername());
         ShareVO shareVO = new ShareVO();
         shareVO.setAvatarUrl(user.getAvatarUrl());
         shareVO.setUsername(user.getUniqueName());
