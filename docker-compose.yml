@@ -18,9 +18,37 @@ services:
       SMTP_MAIL_PORT: 465                             # 10.邮件服务器端口
       SMTP_MAIL_USERNAME: "your_username"             # 11.邮件服务器用户名
       SMTP_MAIL_PASSWORD: "your_password"             # 12.邮件服务器密码
+      MIRROR_ENABLE: true                             # 13.是否启用MIRROR镜像
+      MIRROR_HOST: http://localhost:50002             # 14.填写你的mirror服务地址，由于该地址会直接在页面跳转，建议填写域名，避免局域网外无法访问/ip泄漏等问题
     ports:
-      - "8181:8181"                                   # 13.如需修改端口，请修改第一个8181为你需要访问的服务器端口
+      - "8181:8181"                                   # 15.如需修改端口，请修改第一个8181为你需要访问的服务器端口
     restart: always
+  mirror:
+    image: dairoot/chatgpt-gateway:latest
+    environment:
+      ENABLE_MIRROR_API: false
+      PROXY_URL_POOL: ""                              # 16.选填，代理地址用逗号分隔,如：“http://username@password@ip:port,socks5://username@password@ip:port”
+      REDIS_URL: redis://redis:6379/0
+    ports:
+      - "50002:8787"                                  # 17.如需修改端口，请修改第一个8181为你需要访问的服务器端口
+    restart: always
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:latest
+    restart: always
+    ports:
+      - "127.0.0.1:16379:6379"
+    volumes:
+      - ./redis-data:/data                            # 18.指定宿主机的redis数据挂载目录
+    command: ["redis-server","--appendonly","yes" ]
+  cf5s:
+    image: dairoot/cf5s:latest
+    restart: always
+    environment:
+      CHATGPT_GATEWAY_URL: "http://mirror:8787"
+      #PROXY_URL_POOL: ""                             # 19.选填，代理地址用逗号分隔,如：“http://username@password@ip:port,socks5://username@password@ip:port”
 
 volumes:
   db-data:
@@ -28,4 +56,4 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: /home/db                # 8.指定宿主机的数据库挂载目录，必须使用绝对路径
+      device: /home/db                                # 18.指定宿主机的数据库挂载目录，必须使用绝对路径

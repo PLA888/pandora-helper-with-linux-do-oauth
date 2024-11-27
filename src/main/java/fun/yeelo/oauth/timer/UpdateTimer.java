@@ -74,7 +74,7 @@ public class UpdateTimer {
     public void init() {
         log.info("启动预检");
         CompletableFuture.runAsync(() -> {
-            sendAccountExpiringEmail();
+            //sendAccountExpiringEmail();
             sendShareExpiringEmail();
         });
     }
@@ -96,45 +96,45 @@ public class UpdateTimer {
         });
     }
 
-    @Scheduled(cron = "0 0 2 * * ?")
-    public void updateRefreshToken() {
-        log.info("开始刷新access_token");
-        List<Account> accounts = accountService.list().stream()
-                                         .filter(e -> StringUtils.hasText(e.getRefreshToken()) && e.getAccountType().equals(1))
-                                         .collect(Collectors.toList());
-        accounts.forEach(account -> {
-            try {
-                Integer accountId = account.getId();
-                HttpHeaders headers = new HttpHeaders();
-                headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-                MultiValueMap<String, Object> personJsonObject = new LinkedMultiValueMap<>();
-                personJsonObject.add("refresh_token", account.getRefreshToken());
-                ResponseEntity<String> stringResponseEntity = restTemplate.exchange(REFRESH_URL, HttpMethod.POST, new HttpEntity<>(personJsonObject, headers), String.class);
-                Map map = objectMapper.readValue(stringResponseEntity.getBody(), Map.class);
-                if (map.containsKey("access_token")) {
-                    log.info("refresh success");
-                    String newToken = map.get("access_token").toString();
-                    Account updateDTO = new Account();
-                    updateDTO.setId(accountId);
-                    updateDTO.setAccessToken(newToken);
-                    updateDTO.setUpdateTime(LocalDateTime.now());
-                    accountService.saveOrUpdate(updateDTO);
-                }
-            } catch (Exception e) {
-                log.error("刷新access_token异常,异常账号:{}", account.getEmail(), e);
-            }
-        });
-
-        if (mailEnable) {
-            accounts.forEach(account -> {
-                LocalDateTime updateTime = account.getUpdateTime();
-                if (updateTime != null && updateTime.toLocalDate().plusDays(9).isEqual(LocalDateTime.now().toLocalDate())) {
-                    emailService.sendSimpleEmail(adminEmail, "ACCESS_TOKEN过期提醒", "ACCESS_TOKEN即将过期,账号（邮箱）:"+account.getEmail());
-                }
-            });
-        }
-        log.info("刷新access_token结束");
-    }
+    //@Scheduled(cron = "0 0 2 * * ?")
+    //public void updateRefreshToken() {
+    //    log.info("开始刷新access_token");
+    //    List<Account> accounts = accountService.list().stream()
+    //                                     .filter(e -> StringUtils.hasText(e.getRefreshToken()) && e.getAccountType().equals(1))
+    //                                     .collect(Collectors.toList());
+    //    accounts.forEach(account -> {
+    //        try {
+    //            Integer accountId = account.getId();
+    //            HttpHeaders headers = new HttpHeaders();
+    //            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+    //            MultiValueMap<String, Object> personJsonObject = new LinkedMultiValueMap<>();
+    //            personJsonObject.add("refresh_token", account.getRefreshToken());
+    //            ResponseEntity<String> stringResponseEntity = restTemplate.exchange(REFRESH_URL, HttpMethod.POST, new HttpEntity<>(personJsonObject, headers), String.class);
+    //            Map map = objectMapper.readValue(stringResponseEntity.getBody(), Map.class);
+    //            if (map.containsKey("access_token")) {
+    //                log.info("refresh success");
+    //                String newToken = map.get("access_token").toString();
+    //                Account updateDTO = new Account();
+    //                updateDTO.setId(accountId);
+    //                updateDTO.setAccessToken(newToken);
+    //                updateDTO.setUpdateTime(LocalDateTime.now());
+    //                accountService.saveOrUpdate(updateDTO);
+    //            }
+    //        } catch (Exception e) {
+    //            log.error("刷新access_token异常,异常账号:{}", account.getEmail(), e);
+    //        }
+    //    });
+    //
+    //    if (mailEnable) {
+    //        accounts.forEach(account -> {
+    //            LocalDateTime updateTime = account.getUpdateTime();
+    //            if (updateTime != null && updateTime.toLocalDate().plusDays(9).isEqual(LocalDateTime.now().toLocalDate())) {
+    //                emailService.sendSimpleEmail(adminEmail, "ACCESS_TOKEN过期提醒", "ACCESS_TOKEN即将过期,账号（邮箱）:"+account.getEmail());
+    //            }
+    //        });
+    //    }
+    //    log.info("刷新access_token结束");
+    //}
 
 
     @Scheduled(cron = "0 0 3 */2 * ?")
@@ -205,25 +205,25 @@ public class UpdateTimer {
         log.info("发送订阅过期通知结束");
     }
 
-    @Scheduled(cron = "0 0 8 * * ?")
-    public void sendAccountExpiringEmail() {
-        if (!mailEnable) {
-            return;
-        }
-        log.info("开始发送ChatGPT账号过期通知");
-        List<Account> accounts = accountService.list().stream().filter(e -> e.getAccountType().equals(1) && StringUtils.hasText(e.getAccessToken())).collect(Collectors.toList());
-        for (Account account : accounts) {
-            try {
-                LocalDateTime localDateTime = checkAccount(account.getAccessToken());
-                if (localDateTime.toLocalDate().isEqual(LocalDate.now().plusDays(3)) || localDateTime.toLocalDate().isBefore(LocalDate.now().plusDays(3))) {
-                    emailService.sendSimpleEmail(account.getEmail(), "ChatGPT账号过期预警", "您的ChatGPT即将到期，到期时间为：" + localDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "，账号(邮箱):" + account.getEmail() + "，请注意及时续费。");
-                }
-            } catch (Exception ex) {
-                log.error("获取chatgpt账号过期时间异常,账号:{}", account.getEmail(), ex);
-            }
-        }
-        log.info("发送ChatGPT账号过期通知结束");
-    }
+    //@Scheduled(cron = "0 0 8 * * ?")
+    //public void sendAccountExpiringEmail() {
+    //    if (!mailEnable) {
+    //        return;
+    //    }
+    //    log.info("开始发送ChatGPT账号过期通知");
+    //    List<Account> accounts = accountService.list().stream().filter(e -> e.getAccountType().equals(1) && StringUtils.hasText(e.getAccessToken())).collect(Collectors.toList());
+    //    for (Account account : accounts) {
+    //        try {
+    //            LocalDateTime localDateTime = checkAccount(account.getAccessToken());
+    //            if (localDateTime.toLocalDate().isEqual(LocalDate.now().plusDays(3)) || localDateTime.toLocalDate().isBefore(LocalDate.now().plusDays(3))) {
+    //                emailService.sendSimpleEmail(account.getEmail(), "ChatGPT账号过期预警", "您的ChatGPT即将到期，到期时间为：" + localDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "，账号(邮箱):" + account.getEmail() + "，请注意及时续费。");
+    //            }
+    //        } catch (Exception ex) {
+    //            log.error("获取chatgpt账号过期时间异常,账号:{}", account.getEmail(), ex);
+    //        }
+    //    }
+    //    log.info("发送ChatGPT账号过期通知结束");
+    //}
 
     public LocalDateTime checkAccount(String accessToken) {
         // 准备请求头

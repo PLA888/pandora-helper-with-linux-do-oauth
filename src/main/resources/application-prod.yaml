@@ -50,5 +50,5 @@ admin-name: ${ADMIN_NAME:admin}
 chat_site: ${CHAT_SITE:https://next.yeelo.top}
 
 mirror:
-  enable: ${MIRROR_ENABLE:false}
-  host: ${MIRROR_HOST:https://chat.yeelo.fun}
+  enable: ${MIRROR_ENABLE:true}
+  host: ${MIRROR_HOST:http://127.0.0.1:50002}
