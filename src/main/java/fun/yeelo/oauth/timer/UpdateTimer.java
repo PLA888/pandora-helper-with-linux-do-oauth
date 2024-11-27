@@ -64,7 +64,7 @@ public class UpdateTimer {
     @Value("${spring.mail.username}")
     private String adminEmail;
 
-    private static final String REFRESH_URL = "https://token.oaifree.com/api/auth/refresh";
+    //private static final String REFRESH_URL = "https://token.oaifree.com/api/auth/refresh";
 
 
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -205,25 +205,25 @@ public class UpdateTimer {
         log.info("发送订阅过期通知结束");
     }
 
-    //@Scheduled(cron = "0 0 8 * * ?")
-    //public void sendAccountExpiringEmail() {
-    //    if (!mailEnable) {
-    //        return;
-    //    }
-    //    log.info("开始发送ChatGPT账号过期通知");
-    //    List<Account> accounts = accountService.list().stream().filter(e -> e.getAccountType().equals(1) && StringUtils.hasText(e.getAccessToken())).collect(Collectors.toList());
-    //    for (Account account : accounts) {
-    //        try {
-    //            LocalDateTime localDateTime = checkAccount(account.getAccessToken());
-    //            if (localDateTime.toLocalDate().isEqual(LocalDate.now().plusDays(3)) || localDateTime.toLocalDate().isBefore(LocalDate.now().plusDays(3))) {
-    //                emailService.sendSimpleEmail(account.getEmail(), "ChatGPT账号过期预警", "您的ChatGPT即将到期，到期时间为：" + localDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "，账号(邮箱):" + account.getEmail() + "，请注意及时续费。");
-    //            }
-    //        } catch (Exception ex) {
-    //            log.error("获取chatgpt账号过期时间异常,账号:{}", account.getEmail(), ex);
-    //        }
-    //    }
-    //    log.info("发送ChatGPT账号过期通知结束");
-    //}
+    @Scheduled(cron = "0 0 8 * * ?")
+    public void sendAccountExpiringEmail() {
+        if (!mailEnable) {
+            return;
+        }
+        log.info("开始发送ChatGPT账号过期通知");
+        List<Account> accounts = accountService.list().stream().filter(e -> e.getAccountType().equals(1) && StringUtils.hasText(e.getAccessToken())).collect(Collectors.toList());
+        for (Account account : accounts) {
+            try {
+                LocalDateTime localDateTime = checkAccount(account.getAccessToken());
+                if (localDateTime.toLocalDate().isEqual(LocalDate.now().plusDays(3)) || localDateTime.toLocalDate().isBefore(LocalDate.now().plusDays(3))) {
+                    emailService.sendSimpleEmail(account.getEmail(), "ChatGPT账号过期预警", "您的ChatGPT即将到期，到期时间为：" + localDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "，账号(邮箱):" + account.getEmail() + "，请注意及时续费。");
+                }
+            } catch (Exception ex) {
+                log.error("获取chatgpt账号过期时间异常,账号:{}", account.getEmail(), ex);
+            }
+        }
+        log.info("发送ChatGPT账号过期通知结束");
+    }
 
     public LocalDateTime checkAccount(String accessToken) {
         // 准备请求头
@@ -271,17 +271,11 @@ public class UpdateTimer {
         try {
             // 发送请求
             ResponseEntity<String> response = restTemplate.exchange(
-                    "https://new.oaifree.com/backend-api/accounts/check/v4-2023-04-27?timezone_offset_min=-480",
+                    "https://token.yeelo.fun/backend-api/accounts/check/v4-2023-04-27?timezone_offset_min=-480",
                     HttpMethod.GET,
                     requestEntity,
                     String.class
             );
-
-            //if (response.getStatusCode().is2xxSuccessful()) {
-            //    return response.getBody().toString();
-            //} else {
-            //    throw new RuntimeException("账户请求失败: " + response.getStatusCodeValue());
-            //}
             return LocalDateTime.parse(JSON.parseObject(response.getBody()).getJSONObject("accounts").getJSONObject("default").getJSONObject("entitlement").getString("expires_at"), DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX"));
         } catch (RestClientException e) {
             throw new RuntimeException("账户请求失败: " + e.getMessage());
