@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fun.yeelo.oauth.config.CommonConst;
 import fun.yeelo.oauth.config.HttpResult;
+import fun.yeelo.oauth.config.MirrorConfig;
 import fun.yeelo.oauth.dao.AccountMapper;
 import fun.yeelo.oauth.dao.ShareMapper;
 import fun.yeelo.oauth.domain.*;
@@ -62,6 +63,8 @@ public class AccountService extends ServiceImpl<AccountMapper, Account> implemen
     private CarService carService;
     @Autowired
     private ApiConfigService apiConfigService;
+    @Autowired
+    private MirrorConfig mirrorConfig;
 
     public List<Account> findAll() {
         return accountMapper.selectList(null);
@@ -85,8 +88,12 @@ public class AccountService extends ServiceImpl<AccountMapper, Account> implemen
         String addr = "";
         switch (account.getAccountType()) {
             case 1:
-                addr = shareService.generateGPTUrl(user,account);
-                if (addr == null) {
+                //addr = shareService.generateGPTUrl(user,account);
+                HttpResult<ShareVO> mirrorRes = mirrorConfig.getMirrorUrl(user.getUniqueName(), account.getId());
+                if (mirrorRes.isStatus()){
+                    addr = mirrorRes.getData().getAddress();
+                }
+                else {
                     return HttpResult.error("当前账号异常，请选择其他账号");
                 }
                 break;
