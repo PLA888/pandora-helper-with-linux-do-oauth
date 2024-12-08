@@ -72,7 +72,7 @@ public class UpdateTimer {
     public void init() {
         log.info("启动预检");
         CompletableFuture.runAsync(() -> {
-            //sendAccountExpiringEmail();
+            sendAccountExpiringEmail();
             sendShareExpiringEmail();
         });
     }
@@ -216,7 +216,7 @@ public class UpdateTimer {
         for (Account account : accounts) {
             try {
                 LocalDateTime localDateTime = checkAccount(account.getAccessToken());
-                if (localDateTime!=null && localDateTime.toLocalDate().isEqual(LocalDate.now().plusDays(3)) || localDateTime.toLocalDate().isBefore(LocalDate.now().plusDays(3))) {
+                if (localDateTime!=null && (localDateTime.toLocalDate().isEqual(LocalDate.now().plusDays(3)) || localDateTime.toLocalDate().isBefore(LocalDate.now().plusDays(3)))) {
                     emailService.sendSimpleEmail(account.getEmail(), "ChatGPT账号过期预警", "您的ChatGPT即将到期，到期时间为：" + localDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "，账号(邮箱):" + account.getEmail() + "，请注意及时续费。");
                 }
             } catch (Exception ex) {
@@ -262,16 +262,18 @@ public class UpdateTimer {
         try {
             // 发送请求
             ResponseEntity<String> response = restTemplate.exchange(
-                    "https://chatgpt.com/backend-api/accounts/check/v4-2023-04-27?timezone_offset_min=-480",
+                    "https://token.yeelo.fun/backend-api/accounts/check/v4-2023-04-27?timezone_offset_min=-480",
                     HttpMethod.GET,
                     requestEntity,
                     String.class
             );
             if (!JSON.parseObject(response.getBody()).containsKey("accounts")) {
+                log.error(JSON.parseObject(response.getBody()).toJSONString());
                 return null;
             }
             return LocalDateTime.parse(JSON.parseObject(response.getBody()).getJSONObject("accounts").getJSONObject("default").getJSONObject("entitlement").getString("expires_at"), DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX"));
-        } catch (RestClientException e) {
+        } catch (Exception e) {
+            log.error("refresh error:",e);
             return null;
         }
     }
