@@ -27,7 +27,7 @@ public class EmailService {
             message.setText(text);
             mailSender.send(message);
         }catch (Exception e){
-            log.error("send email error", e);
+            log.error("邮件发送失败", e);
         }
 
     }

@@ -58,6 +58,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers("/").permitAll()
                 .antMatchers("/user/login").permitAll()
+                .antMatchers("/user/refreshAll").permitAll()
                 .antMatchers("/account").permitAll()
                 .antMatchers("/share").permitAll()
                 .antMatchers("/share/autoRenewal").permitAll()

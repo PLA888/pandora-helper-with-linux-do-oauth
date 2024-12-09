@@ -219,6 +219,9 @@ public class UpdateTimer {
         for (Account account : accounts) {
             try {
                 LocalDateTime expireTime = checkAccount(account.getAccessToken(),account.getEmail());
+                if (expireTime!=null) {
+                    log.info("账号{}过期时间:{}",account.getEmail(),expireTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+                }
                 if (expireTime!=null && Duration.between(LocalDateTime.now(),expireTime).toDays() < 3) {
                     emailService.sendSimpleEmail(account.getEmail(), "ChatGPT账号过期预警", "您的ChatGPT即将到期，到期时间为：" + expireTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "，账号(邮箱):" + account.getEmail() + "，请注意及时续费。");
                 }
