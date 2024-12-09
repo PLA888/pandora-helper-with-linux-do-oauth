@@ -238,7 +238,7 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
             }
         }
         PageVO<ShareVO> pageVO = new PageVO<>();
-        pageVO.setData(page == null ? shareVOS : shareVOS.subList(Math.min(10 * (page - 1), shareVOS.size() - 1), Math.min(10 * (page - 1) + size, shareVOS.size())));
+        pageVO.setData(page == null ? shareVOS : (shareVOS.isEmpty()? shareVOS : shareVOS.subList(Math.min(10 * (page - 1), shareVOS.size() - 1), Math.min(10 * (page - 1) + size, shareVOS.size()))));
         pageVO.setTotal(shareVOS.size());
         return HttpResult.success(pageVO);
     }
