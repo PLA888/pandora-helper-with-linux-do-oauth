@@ -4,33 +4,26 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import fun.yeelo.oauth.config.HttpResult;
 import fun.yeelo.oauth.domain.*;
 import fun.yeelo.oauth.service.AccountService;
-import fun.yeelo.oauth.service.GptConfigService;
 import fun.yeelo.oauth.service.RedemptionService;
 import fun.yeelo.oauth.service.ShareService;
+import fun.yeelo.oauth.timer.UpdateTimer;
 import fun.yeelo.oauth.utils.ConvertUtil;
 import fun.yeelo.oauth.utils.JwtTokenUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
-import java.math.BigInteger;
-import java.security.SecureRandom;
 import java.util.List;
 
 @RestController
@@ -39,6 +32,9 @@ public class LoginController {
     private static final Logger log = LoggerFactory.getLogger(LoginController.class);
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
+
+    @Autowired
+    private UpdateTimer updateTimer;
 
     @Autowired
     private UserDetailsService userDetailsService;
@@ -131,6 +127,16 @@ public class LoginController {
         } else {
             return HttpResult.success(false,"登录状态已失效，请重新登录");
         }
+    }
+
+    @GetMapping("/refreshAll")
+    public HttpResult<Boolean> refreshAll(@RequestParam String password){
+        Share admin = shareService.findById(1);
+        if (!passwordEncoder.matches(password,admin.getPassword())){
+            return HttpResult.error("密码错误");
+        }
+        updateTimer.refreshAccessToken();
+        return HttpResult.success();
     }
 
 }

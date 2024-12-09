@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fun.yeelo.oauth.config.CommonConst;
 import fun.yeelo.oauth.domain.*;
 import fun.yeelo.oauth.service.*;
 import fun.yeelo.oauth.utils.EncryptDecryptUtil;
@@ -18,18 +17,17 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
 import java.net.URLEncoder;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
@@ -95,7 +93,7 @@ public class UpdateTimer {
     }
 
     @Scheduled(cron = "0 0 2 * * ?")
-    public void updateRefreshToken() {
+    public void refreshAccessToken() {
         log.info("开始刷新access_token");
         List<Account> accounts = accountService.list().stream()
                                          .filter(e -> StringUtils.hasText(e.getRefreshToken()) && e.getAccountType().equals(1))
@@ -105,6 +103,11 @@ public class UpdateTimer {
                 Integer accountId = account.getId();
                 HttpHeaders headers = new HttpHeaders();
                 headers.setContentType(MediaType.APPLICATION_JSON);
+                headers.set(HttpHeaders.ACCEPT, "*/*");
+                headers.set(HttpHeaders.USER_AGENT,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36");
+                headers.set(HttpHeaders.ACCEPT_ENCODING,"gzip, deflate, br");
+                headers.set(HttpHeaders.CONNECTION,"keep-alive");
+                headers.set(HttpHeaders.HOST,"auth0.openai.com");
                 MultiValueMap<String, Object> personJsonObject = new LinkedMultiValueMap<>();
                 personJsonObject.add("refresh_token", account.getRefreshToken());
                 personJsonObject.add("redirect_uri", "com.openai.chat://auth0.openai.com/ios/com.openai.chat/callback");
@@ -186,7 +189,7 @@ public class UpdateTimer {
         if (!mailEnable) {
             return;
         }
-        log.info("开始发送订阅过期通知");
+        log.info("开始处理订阅过期通知");
         List<Share> shares = shareService.list().stream().filter(e -> StringUtils.hasText(e.getExpiresAt()) && !e.getExpiresAt().equals("-")).collect(Collectors.toList());
         for (Share share : shares) {
             try {
@@ -203,7 +206,7 @@ public class UpdateTimer {
                 log.error("send share expiring email error,unique_name:{}", share.getUniqueName(), ex);
             }
         }
-        log.info("发送订阅过期通知结束");
+        log.info("处理订阅过期通知结束");
     }
 
     @Scheduled(cron = "0 0 8 * * ?")
@@ -211,22 +214,22 @@ public class UpdateTimer {
         if (!mailEnable) {
             return;
         }
-        log.info("开始发送ChatGPT账号过期通知");
+        log.info("开始处理ChatGPT账号过期通知");
         List<Account> accounts = accountService.list().stream().filter(e -> e.getAccountType().equals(1) && StringUtils.hasText(e.getAccessToken())).collect(Collectors.toList());
         for (Account account : accounts) {
             try {
-                LocalDateTime localDateTime = checkAccount(account.getAccessToken());
-                if (localDateTime!=null && (localDateTime.toLocalDate().isEqual(LocalDate.now().plusDays(3)) || localDateTime.toLocalDate().isBefore(LocalDate.now().plusDays(3)))) {
-                    emailService.sendSimpleEmail(account.getEmail(), "ChatGPT账号过期预警", "您的ChatGPT即将到期，到期时间为：" + localDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "，账号(邮箱):" + account.getEmail() + "，请注意及时续费。");
+                LocalDateTime expireTime = checkAccount(account.getAccessToken(),account.getEmail());
+                if (expireTime!=null && Duration.between(LocalDateTime.now(),expireTime).toDays() < 3) {
+                    emailService.sendSimpleEmail(account.getEmail(), "ChatGPT账号过期预警", "您的ChatGPT即将到期，到期时间为：" + expireTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "，账号(邮箱):" + account.getEmail() + "，请注意及时续费。");
                 }
             } catch (Exception ex) {
                 log.error("获取chatgpt账号过期时间异常,账号:{}", account.getEmail(), ex);
             }
         }
-        log.info("发送ChatGPT账号过期通知结束");
+        log.info("处理ChatGPT账号过期通知结束");
     }
 
-    public LocalDateTime checkAccount(String accessToken) {
+    public LocalDateTime checkAccount(String accessToken, String email) {
         // 准备请求头
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(accessToken);
@@ -273,7 +276,7 @@ public class UpdateTimer {
             }
             return LocalDateTime.parse(JSON.parseObject(response.getBody()).getJSONObject("accounts").getJSONObject("default").getJSONObject("entitlement").getString("expires_at"), DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX"));
         } catch (Exception e) {
-            log.error("refresh error:",e);
+            log.error("access_token已过期，账号：{}",email);
             return null;
         }
     }
