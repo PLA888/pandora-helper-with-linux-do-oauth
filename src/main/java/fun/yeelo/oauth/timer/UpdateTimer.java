@@ -109,12 +109,14 @@ public class UpdateTimer {
                 headers.set(HttpHeaders.ACCEPT_ENCODING,"gzip, deflate, br");
                 headers.set(HttpHeaders.CONNECTION,"keep-alive");
                 headers.set(HttpHeaders.HOST,"auth0.openai.com");
-                MultiValueMap<String, Object> personJsonObject = new LinkedMultiValueMap<>();
-                personJsonObject.add("refresh_token", account.getRefreshToken());
-                personJsonObject.add("redirect_uri", "com.openai.chat://auth0.openai.com/ios/com.openai.chat/callback");
-                personJsonObject.add("grant_type", "refresh_token");
-                personJsonObject.add("client_id", "pdlLIX2Y72MIl2rhLhTE9VV9bN905kBh");
-                ResponseEntity<String> stringResponseEntity = restTemplate.postForEntity("https://auth0.openai.com/oauth/token", new HttpEntity<>(personJsonObject, headers), String.class);
+                JSONObject body  = new JSONObject();
+                body.put("refresh_token", account.getRefreshToken());
+                body.put("redirect_uri", "com.openai.chat://auth0.openai.com/ios/com.openai.chat/callback");
+                body.put("grant_type", "refresh_token");
+                body.put("client_id", "pdlLIX2Y72MIl2rhLhTE9VV9bN905kBh");
+                headers.set("Accept-Charset", "UTF-8"); // 声明接受的字符集
+                headers.set(HttpHeaders.CONTENT_LENGTH, String.valueOf(body.toJSONString().length()));
+                ResponseEntity<String> stringResponseEntity = restTemplate.exchange("https://auth0.openai.com/oauth/token", HttpMethod.POST, new HttpEntity<>(body.toJSONString(), headers), String.class);
                 Map map = objectMapper.readValue(stringResponseEntity.getBody(), Map.class);
                 if (map.containsKey("access_token")) {
                     log.info("refresh success");
