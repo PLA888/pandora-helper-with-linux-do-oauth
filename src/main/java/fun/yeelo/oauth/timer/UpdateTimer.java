@@ -102,9 +102,10 @@ public class UpdateTimer {
             try {
                 Integer accountId = account.getId();
                 HttpHeaders headers = new HttpHeaders();
+                headers.set(HttpHeaders.CACHE_CONTROL, "no-cache");
                 headers.setContentType(MediaType.APPLICATION_JSON);
                 headers.set(HttpHeaders.ACCEPT, "*/*");
-                headers.set(HttpHeaders.USER_AGENT,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36");
+                headers.set(HttpHeaders.USER_AGENT,"PostmanRuntime/7.43.0");
                 headers.set(HttpHeaders.ACCEPT_ENCODING,"gzip, deflate, br");
                 headers.set(HttpHeaders.CONNECTION,"keep-alive");
                 headers.set(HttpHeaders.HOST,"auth0.openai.com");
@@ -113,7 +114,7 @@ public class UpdateTimer {
                 personJsonObject.add("redirect_uri", "com.openai.chat://auth0.openai.com/ios/com.openai.chat/callback");
                 personJsonObject.add("grant_type", "refresh_token");
                 personJsonObject.add("client_id", "pdlLIX2Y72MIl2rhLhTE9VV9bN905kBh");
-                ResponseEntity<String> stringResponseEntity = restTemplate.exchange("https://auth0.openai.com/oauth/token", HttpMethod.POST, new HttpEntity<>(personJsonObject, headers), String.class);
+                ResponseEntity<String> stringResponseEntity = restTemplate.postForEntity("https://auth0.openai.com/oauth/token", new HttpEntity<>(personJsonObject, headers), String.class);
                 Map map = objectMapper.readValue(stringResponseEntity.getBody(), Map.class);
                 if (map.containsKey("access_token")) {
                     log.info("refresh success");
@@ -123,6 +124,7 @@ public class UpdateTimer {
                     updateDTO.setAccessToken(newToken);
                     updateDTO.setUpdateTime(LocalDateTime.now());
                     accountService.saveOrUpdate(updateDTO);
+                    log.info("刷新账号{}成功", account.getEmail());
                 }
             } catch (Exception e) {
                 log.error("刷新access_token异常,异常账号:{}", account.getEmail(), e);
