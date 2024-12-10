@@ -7,7 +7,7 @@ services:
     environment:
       CLIENT_ID: ""                                   # 1.你的linux-do oauth client
       CLIENT_SECRET: ""                               # 2.你的linux-do oauth secret
-      REDIRECT_URI: ""                                # 3.必填，你的应用地址
+      REDIRECT_URI: ""                                # 3.必填，你的应用地址（请填写公网地址）
       OAIFREE_PROXY: "https://new.oaifree.com"        # 4.默认oaifree，你可以填写你的代理地址
       FUCLAUDE_PROXY: "https://demo.fuclaude.com"     # 5.默认fuclaude，你可以填写你的fuclaude地址
       TZ: "Asia/Shanghai"
