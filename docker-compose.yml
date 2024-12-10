@@ -27,7 +27,7 @@ services:
     image: dairoot/chatgpt-gateway:latest
     environment:
       ENABLE_MIRROR_API: false
-      PROXY_URL_POOL: ""                              # 16.选填，代理地址用逗号分隔,如：“http://username@password@ip:port,socks5://username@password@ip:port”
+      PROXY_URL_POOL: ""                              # 16.选填，代理地址用逗号分隔,如：“http://username:password@ip:port,socks5://username:password@ip:port”
       REDIS_URL: redis://redis:6379/0
     ports:
       - "50002:8787"                                  # 17.如需修改端口，请修改第一个8181为你需要访问的服务器端口
