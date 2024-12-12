@@ -193,7 +193,7 @@ public class PandoraController {
             headers.setContentType(MediaType.APPLICATION_JSON);
             headers.add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36");
             ObjectNode personJsonObject = objectMapper.createObjectNode();
-            personJsonObject.put("user_name", username);
+            personJsonObject.put("user_name", username.length() < 4 ? username+"####" : username);
             personJsonObject.put("isolated_session",true);
             personJsonObject.put("access_token",accountService.getById(gptShare.getAccountId()).getAccessToken());
 
