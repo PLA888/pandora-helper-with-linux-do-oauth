@@ -103,10 +103,15 @@ public class PandoraController {
         ShareGptConfig byShareId = gptConfigService.getByShareId(user.getId());
         // 判断是否有share token
         ShareVO res = new ShareVO();
-        res.setIsShared(byShareId!=null && byShareId.getShareToken() != null);
-        if (!res.getIsShared()) {
-            return HttpResult.success(res);
+        if (!mirrorEnable) {
+            res.setIsShared(byShareId!=null && byShareId.getShareToken() != null);
+            if (!res.getIsShared()) {
+                return HttpResult.success(res);
+            }
+        }else {
+            res.setIsShared(true);
         }
+
         BeanUtils.copyProperties(user, res);
 
         if (mirrorEnable) {

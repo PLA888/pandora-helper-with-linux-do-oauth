@@ -49,6 +49,7 @@ public class MirrorConfig {
             if (map.containsKey("user-gateway-token")) {
                 String gatewayToken = map.get("user-gateway-token").toString();
                 res.setAddress(mirrorHost + "/api/not-login?user_gateway_token=" + gatewayToken);
+                res.setIsShared(true);
                 return HttpResult.success(res);
             } else {
                 return HttpResult.error("获取Gateway Token 异常");
