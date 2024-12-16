@@ -130,6 +130,9 @@ public class UpdateTimer {
                 }
             } catch (Exception e) {
                 log.error("刷新access_token异常,异常账号:{}", account.getEmail(), e);
+                if(mailEnable) {
+                    emailService.sendSimpleEmail(adminEmail, "刷新access_token异常", "刷新access_token异常,异常账号:"+account.getEmail()+", 请检查对应 refresh_token 是否有效");
+                }
             }
         });
 
