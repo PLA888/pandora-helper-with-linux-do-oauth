@@ -387,6 +387,7 @@ public class AccountService extends ServiceImpl<AccountMapper, Account> implemen
             }
         } catch (Exception e) {
             log.error("刷新access_token异常,异常账号:{}", account.getEmail(), e);
+            return HttpResult.error("刷新 access_token异常 , 请检查 refresh_token 是否有效");
         }
 
 
