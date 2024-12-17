@@ -111,7 +111,7 @@ public class CarService extends ServiceImpl<CarMapper, CarApply> implements ISer
         });
         Map<Integer, List<CarApply>> applys = list().stream().collect(Collectors.groupingBy(e -> e.getAccountId()));
         accountVOS = accountVOS.stream()
-                             .filter(e -> !StringUtils.hasText(owner) || e.getUsername().contains(owner))
+                             .filter(e -> e.getType()!=null)
                              .sorted(Comparator.comparing(AccountVO::getType))
                              .collect(Collectors.toList());
         accountVOS.forEach(e -> {
