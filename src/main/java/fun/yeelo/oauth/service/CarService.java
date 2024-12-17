@@ -81,7 +81,7 @@ public class CarService extends ServiceImpl<CarMapper, CarApply> implements ISer
         }
         List<Account> accountList = new ArrayList<>(accountService.list(new LambdaQueryWrapper<Account>().eq(Account::getShared, true)));
         List<AccountVO> accountVOS = ConvertUtil.convertList(accountList, AccountVO.class);
-        accountVOS.forEach(e -> {
+        accountVOS.stream().filter(e->userMap.containsKey(e.getUserId())).forEach(e -> {
             Share targetUser = userMap.get(e.getUserId());
             e.setType(e.getAccountType().equals(1) ? "ChatGPT" : e.getAccountType().equals(2) ? "Claude" : "API");
             String levelDesc = userMap.get(e.getUserId()).getTrustLevel() == null
