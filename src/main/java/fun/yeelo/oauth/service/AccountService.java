@@ -347,8 +347,6 @@ public class AccountService extends ServiceImpl<AccountMapper, Account> implemen
                     apiConfigService.remove(new LambdaQueryWrapper<ShareApiConfig>().eq(ShareApiConfig::getAccountId,account.getId()));
                     break;
             }
-        } else {
-            return HttpResult.error("您无权操作该账号");
         }
         saveOrUpdate(dto);
 

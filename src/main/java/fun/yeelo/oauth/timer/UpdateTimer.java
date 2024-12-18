@@ -92,7 +92,7 @@ public class UpdateTimer {
         });
     }
 
-    @Scheduled(cron = "0 0 2 * * ?")
+    @Scheduled(cron = "${task.refresh:0 0 2 * * ?}")
     public void refreshAccessToken() {
         log.info("开始刷新access_token");
         List<Account> accounts = accountService.list().stream()
@@ -218,9 +218,7 @@ public class UpdateTimer {
 
     @Scheduled(cron = "0 0 8 * * ?")
     public void sendAccountExpiringEmail() {
-        if (!mailEnable) {
-            return;
-        }
+
         log.info("开始处理ChatGPT账号过期通知");
         List<Account> accounts = accountService.list().stream().filter(e -> e.getAccountType().equals(1) && StringUtils.hasText(e.getAccessToken())).collect(Collectors.toList());
         for (Account account : accounts) {
@@ -229,7 +227,7 @@ public class UpdateTimer {
                 if (expireTime!=null) {
                     log.info("账号{}过期时间:{}",account.getEmail(),expireTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
                 }
-                if (expireTime!=null && Duration.between(LocalDateTime.now(),expireTime).toDays() < 3) {
+                if (mailEnable && expireTime!=null && Duration.between(LocalDateTime.now(),expireTime).toDays() < 3) {
                     emailService.sendSimpleEmail(account.getEmail(), "ChatGPT账号过期预警", "您的ChatGPT即将到期，到期时间为：" + expireTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "，账号(邮箱):" + account.getEmail() + "，请注意及时续费。");
                 }
             } catch (Exception ex) {

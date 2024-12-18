@@ -48,6 +48,9 @@ mybatis-plus:
 
 admin-name: ${ADMIN_NAME:admin}
 chat_site: ${CHAT_SITE:https://next.yeelo.top}
+task:
+  refresh: ${REFRESH_TASK_EXPRESSION:0 0 2 * * ?}  # 使用环境变量，冒号后面是默认值
+
 
 mirror:
   enable: ${MIRROR_ENABLE:true}
