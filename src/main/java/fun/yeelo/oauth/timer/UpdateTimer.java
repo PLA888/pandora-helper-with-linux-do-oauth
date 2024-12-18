@@ -64,6 +64,8 @@ public class UpdateTimer {
 
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired
+    private ApiConfigService apiConfigService;
 
     @PostConstruct
     @ConditionalOnProperty(name = "smtp.enable", havingValue = "true")
@@ -85,6 +87,7 @@ public class UpdateTimer {
                 if (expireData.isEqual(LocalDate.now()) || !expireData.isAfter(LocalDate.now())) {
                     gptConfigService.remove(new LambdaQueryWrapper<ShareGptConfig>().eq(ShareGptConfig::getShareId, share.getId()));
                     claudeConfigService.remove(new LambdaQueryWrapper<ShareClaudeConfig>().eq(ShareClaudeConfig::getShareId, share.getId()));
+                    apiConfigService.remove(new LambdaQueryWrapper<ShareApiConfig>().eq(ShareApiConfig::getShareId, share.getId()));
                 }
             } catch (Exception ex) {
                 log.error("expire detect error,unique_name:{}", share.getUniqueName(), ex);
