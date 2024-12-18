@@ -238,7 +238,7 @@ public class AccountService extends ServiceImpl<AccountMapper, Account> implemen
         Map<Integer, List<CarApply>> accountIdMap = carService.list().stream().collect(Collectors.groupingBy(CarApply::getAccountId));
         accountVOS.forEach(e -> {
             //e.setEmail("车辆"+(num.getAndIncrement()));
-            e.setType(e.getAccountType().equals(1) ? "ChatGPT" : e.getAccountType().equals(2)?"Claude":"API");
+            e.setType(e.getAccountType().equals(1) ? "ChatGPT" : (e.getAccountType().equals(2)?"Claude":"API"));
             e.setCount(accountIdMap.getOrDefault(e.getId(), new ArrayList<>()).size());
         });
         accountVOS = accountVOS.stream()
@@ -277,15 +277,7 @@ public class AccountService extends ServiceImpl<AccountMapper, Account> implemen
             Integer accountType = account.getAccountType();
             switch (accountType) {
                 case 1:
-                    List<ShareGptConfig> shareList = gptConfigService.list(new LambdaQueryWrapper<ShareGptConfig>().eq(ShareGptConfig::getAccountId, id));
-                    CompletableFuture.runAsync(() -> {
-                        shareList.parallelStream().forEach(e -> {
-                            ShareVO shareVO = new ShareVO();
-                            shareVO.setAccountId(-1);
-                            shareVO.setId(e.getId());
-                            shareService.distribute(shareVO);
-                        });
-                    });
+                    gptConfigService.remove(new LambdaQueryWrapper<ShareGptConfig>().eq(ShareGptConfig::getAccountId, account.getId()));
                     break;
                 case 2:
                     claudeConfigService.remove(new LambdaQueryWrapper<ShareClaudeConfig>().eq(ShareClaudeConfig::getAccountId, id));
@@ -331,8 +323,33 @@ public class AccountService extends ServiceImpl<AccountMapper, Account> implemen
         if (!StringUtils.hasText(dto.getName())) {
             dto.setName(dto.getEmail());
         }
+        if (dto.getId()==null) {
+            return HttpResult.error("账号ID不存在");
+
+        }
         dto.setUpdateTime(LocalDateTime.now());
         dto.setUserId(user.getId());
+        Account account = findById(dto.getId());
+        // 假设账号共享从开启到关闭，则删除所有共享的配置
+        if (account != null
+                    && account.getUserId().equals(user.getId())
+                    && account.getShared().equals(1)
+                    && dto.getShared().equals(0)){
+            Integer accountType = account.getAccountType();
+            switch (accountType) {
+                case 1:
+                    gptConfigService.remove(new LambdaQueryWrapper<ShareGptConfig>().eq(ShareGptConfig::getAccountId, account.getId()));
+                    break;
+                case 2:
+                    claudeConfigService.remove(new LambdaQueryWrapper<ShareClaudeConfig>().eq(ShareClaudeConfig::getAccountId, account.getId()));
+                    break;
+                case 3:
+                    apiConfigService.remove(new LambdaQueryWrapper<ShareApiConfig>().eq(ShareApiConfig::getAccountId,account.getId()));
+                    break;
+            }
+        } else {
+            return HttpResult.error("您无权操作该账号");
+        }
         saveOrUpdate(dto);
 
         return HttpResult.success(true);

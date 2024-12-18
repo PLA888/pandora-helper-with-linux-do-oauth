@@ -54,5 +54,8 @@ public class Account {
     @TableField("user_limit")
     private Integer userLimit;
 
+    @TableField("plan_type")
+    private String planType;
+
 
 }

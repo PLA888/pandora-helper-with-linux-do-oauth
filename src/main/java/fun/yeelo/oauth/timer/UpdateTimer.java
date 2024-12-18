@@ -225,7 +225,7 @@ public class UpdateTimer {
         List<Account> accounts = accountService.list().stream().filter(e -> e.getAccountType().equals(1) && StringUtils.hasText(e.getAccessToken())).collect(Collectors.toList());
         for (Account account : accounts) {
             try {
-                LocalDateTime expireTime = checkAccount(account.getAccessToken(),account.getEmail());
+                LocalDateTime expireTime = checkAccount(account.getAccessToken(),account.getEmail(), account.getId());
                 if (expireTime!=null) {
                     log.info("账号{}过期时间:{}",account.getEmail(),expireTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
                 }
@@ -239,7 +239,7 @@ public class UpdateTimer {
         log.info("处理ChatGPT账号过期通知结束");
     }
 
-    public LocalDateTime checkAccount(String accessToken, String email) {
+    public LocalDateTime checkAccount(String accessToken, String email, Integer id) {
         // 准备请求头
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(accessToken);
@@ -280,13 +280,25 @@ public class UpdateTimer {
                     requestEntity,
                     String.class
             );
-            if (!JSON.parseObject(response.getBody()).containsKey("accounts")) {
-                log.error(JSON.parseObject(response.getBody()).toJSONString());
+            try {
+                if (!JSON.parseObject(response.getBody()).containsKey("accounts")) {
+                    log.error("access_token已过期，账号：{}",email);
+                    log.error(JSON.parseObject(response.getBody()).toJSONString());
+                    return null;
+                }
+            }catch (Exception ex) {
+                log.error("JSON解析失败，账号：{}, 返回内容{}",email, response.getBody());
                 return null;
             }
+
+            String planType = JSON.parseObject(response.getBody()).getJSONObject("accounts").getJSONObject("default").getJSONObject("account").getString("plan_type");
+            Account account = new Account();
+            account.setId(id);
+            account.setPlanType(planType);
+            accountService.updateById(account);
             return LocalDateTime.parse(JSON.parseObject(response.getBody()).getJSONObject("accounts").getJSONObject("default").getJSONObject("entitlement").getString("expires_at"), DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX"));
         } catch (Exception e) {
-            log.error("access_token已过期，账号：{}",email);
+            log.error("获取账号信息异常，账号：{}",email);
             return null;
         }
     }
