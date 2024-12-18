@@ -65,6 +65,8 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
     private String mirrorHost;
     @Value("${mirror.enable}")
     private Boolean mirrorEnable;
+    @Value("${mirror.password}")
+    private String mirrorPwd;
     @Value("${linux-do.oaifree.token-api}")
     private String tokenUrl;
     @Value("${linux-do.oaifree.auth-api}")
@@ -428,6 +430,9 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
 
         if (mirrorEnable) {
             headers.setContentType(MediaType.APPLICATION_JSON);
+            if (!mirrorPwd.equals("-"))  {
+                headers.setBearerAuth(mirrorPwd);
+            }
             headers.add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36");
             ObjectNode personJsonObject = objectMapper.createObjectNode();
             String uniqueName = shareService.getById(gptShare.getShareId()).getUniqueName();

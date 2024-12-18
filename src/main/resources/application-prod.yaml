@@ -52,3 +52,4 @@ chat_site: ${CHAT_SITE:https://next.yeelo.top}
 mirror:
   enable: ${MIRROR_ENABLE:true}
   host: ${MIRROR_HOST:http://127.0.0.1:50002}
+  password: ${MIRROR_PASSWORD:-}

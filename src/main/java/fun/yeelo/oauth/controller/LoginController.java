@@ -139,4 +139,41 @@ public class LoginController {
         return HttpResult.success();
     }
 
+    @PostMapping("/reset")
+    public HttpResult<String> reset(@RequestBody ResetDTO resetDTO, HttpServletRequest request) {
+        String token = jwtTokenUtil.getTokenFromRequest(request);
+        if (!StringUtils.hasText(token)) {
+            return HttpResult.error("用户未登录，请尝试刷新页面");
+        }
+        String username = jwtTokenUtil.extractUsername(token);
+        Share user = shareService.getByUserName(username);
+        if (user == null) {
+            return HttpResult.error("用户不存在，请联系管理员");
+        }
+
+        String password = resetDTO.getOldPassword();
+        String newPassword = resetDTO.getNewPassword();
+        String confirmPassword = resetDTO.getConfirmPassword();
+        if (!StringUtils.hasText(password)) {
+            return HttpResult.error("旧密码为空");
+        }
+        if (!StringUtils.hasText(newPassword) || !StringUtils.hasText(confirmPassword)) {
+            return HttpResult.error("新密码为空");
+        }
+        if (!newPassword.equals(confirmPassword)) {
+            return HttpResult.error("两次密码不一致");
+        }
+        if (newPassword.length() < 8) {
+            return HttpResult.error("密码长度必须超过大于等于8位，请重新输入。");
+        }
+        if (!passwordEncoder.matches(password,user.getPassword())){
+            return HttpResult.error("密码错误，请重试");
+        }
+        Share update = new ShareVO();
+        update.setId(user.getId());
+        update.setPassword(passwordEncoder.encode(newPassword));
+        boolean res = shareService.updateById(update);
+        return res ? HttpResult.success("重置成功") : HttpResult.error("重置失败");
+    }
+
 }
