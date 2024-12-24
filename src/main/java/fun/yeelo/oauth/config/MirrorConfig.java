@@ -2,9 +2,7 @@ package fun.yeelo.oauth.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import fun.yeelo.oauth.domain.Share;
-import fun.yeelo.oauth.domain.ShareGptConfig;
-import fun.yeelo.oauth.domain.ShareVO;
+import fun.yeelo.oauth.domain.share.ShareVO;
 import fun.yeelo.oauth.service.AccountService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

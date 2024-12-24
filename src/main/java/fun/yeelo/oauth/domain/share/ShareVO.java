@@ -1,4 +1,4 @@
-package fun.yeelo.oauth.domain;
+package fun.yeelo.oauth.domain.share;
 
 import lombok.Data;
 

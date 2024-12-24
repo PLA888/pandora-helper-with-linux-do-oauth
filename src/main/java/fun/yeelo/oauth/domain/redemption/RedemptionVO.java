@@ -1,9 +1,6 @@
-package fun.yeelo.oauth.domain;
+package fun.yeelo.oauth.domain.redemption;
 
-import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
-
-import java.time.LocalDateTime;
 
 @Data
 public class RedemptionVO extends Redemption{

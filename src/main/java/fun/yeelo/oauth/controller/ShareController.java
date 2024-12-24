@@ -1,37 +1,15 @@
 package fun.yeelo.oauth.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import fun.yeelo.oauth.config.CommonConst;
 import fun.yeelo.oauth.config.HttpResult;
 import fun.yeelo.oauth.domain.*;
+import fun.yeelo.oauth.domain.share.Share;
+import fun.yeelo.oauth.domain.share.ShareVO;
 import fun.yeelo.oauth.service.*;
-import fun.yeelo.oauth.utils.ConvertUtil;
-import fun.yeelo.oauth.utils.JwtTokenUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/share")
@@ -47,9 +25,9 @@ public class ShareController {
 
     @GetMapping("/list")
     public HttpResult<PageVO<ShareVO>> list(HttpServletRequest request,
-                                          @RequestParam(required = false) String emailAddr,
-                                          @RequestParam(required = false) Integer accountType,
-                                          @RequestParam(required = false) Integer page,
+                                            @RequestParam(required = false) String emailAddr,
+                                            @RequestParam(required = false) Integer accountType,
+                                            @RequestParam(required = false) Integer page,
                                             @RequestParam(required = false) Integer size) {
         return shareService.listShares(request,emailAddr,accountType,page,size);
     }

@@ -2,6 +2,8 @@ package fun.yeelo.oauth.controller;
 
 import fun.yeelo.oauth.config.HttpResult;
 import fun.yeelo.oauth.domain.*;
+import fun.yeelo.oauth.domain.redemption.Redemption;
+import fun.yeelo.oauth.domain.redemption.RedemptionVO;
 import fun.yeelo.oauth.service.AccountService;
 import fun.yeelo.oauth.service.CarService;
 import fun.yeelo.oauth.service.RedemptionService;
@@ -9,13 +11,10 @@ import fun.yeelo.oauth.service.ShareService;
 import fun.yeelo.oauth.utils.JwtTokenUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
-import java.time.LocalDateTime;
-import java.util.*;
 
 @RestController
 @RequestMapping("/redemption")

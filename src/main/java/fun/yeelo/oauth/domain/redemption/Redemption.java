@@ -1,4 +1,4 @@
-package fun.yeelo.oauth.domain;
+package fun.yeelo.oauth.domain.redemption;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;

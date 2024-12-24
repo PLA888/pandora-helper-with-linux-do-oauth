@@ -2,10 +2,9 @@ package fun.yeelo.oauth.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
-import com.fasterxml.jackson.databind.util.JSONPObject;
 import fun.yeelo.oauth.config.HttpResult;
-import fun.yeelo.oauth.domain.Share;
-import fun.yeelo.oauth.domain.ShareVO;
+import fun.yeelo.oauth.domain.share.Share;
+import fun.yeelo.oauth.domain.share.ShareVO;
 import fun.yeelo.oauth.service.ShareService;
 import fun.yeelo.oauth.utils.ConvertUtil;
 import org.slf4j.Logger;
@@ -21,14 +20,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Base64;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 

@@ -2,7 +2,7 @@ package fun.yeelo.oauth.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import fun.yeelo.oauth.dao.ShareMapper;
-import fun.yeelo.oauth.domain.Share;
+import fun.yeelo.oauth.domain.share.Share;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

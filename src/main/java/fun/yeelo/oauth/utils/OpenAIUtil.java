@@ -3,7 +3,7 @@ package fun.yeelo.oauth.utils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import fun.yeelo.oauth.domain.Account;
+import fun.yeelo.oauth.domain.account.Account;
 import fun.yeelo.oauth.service.AccountService;
 import fun.yeelo.oauth.service.EmailService;
 import lombok.extern.slf4j.Slf4j;

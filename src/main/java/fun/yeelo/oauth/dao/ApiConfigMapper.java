@@ -1,7 +1,7 @@
 package fun.yeelo.oauth.dao;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import fun.yeelo.oauth.domain.ShareApiConfig;
+import fun.yeelo.oauth.domain.share.ShareApiConfig;
 import org.springframework.stereotype.Repository;
 
 @Repository
