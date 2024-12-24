@@ -78,8 +78,6 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
     @Autowired
     private ShareService shareService;
     @Autowired
-    private MirrorUtil mirrorUtil;
-    @Autowired
     private MirrorConfig mirrorConfig;
 
 
