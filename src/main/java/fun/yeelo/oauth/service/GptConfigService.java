@@ -17,6 +17,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -54,7 +55,7 @@ public class GptConfigService extends ServiceImpl<GptConfigMapper, ShareGptConfi
         return configs.get(0);
     }
 
-    public HttpResult<Boolean> addShare(Account account, String uniqueName, Integer shareId, Integer expire) {
+    public HttpResult<Boolean> addShare(Account account, String uniqueName, Integer shareId, Integer expire, String expireAt) {
         long duration = 0L;
         //if (StringUtils.hasText(expire) && !expire.equals("-")) {
         //    expire += " 00:00:00";
@@ -145,6 +146,10 @@ public class GptConfigService extends ServiceImpl<GptConfigMapper, ShareGptConfi
         gptConfig.setShowConversations(true);
         gptConfig.setRefreshEveryday(true);
         gptConfig.setTemporaryChat(false);
+        // 根据expireAt设置过期时间，格式是精确到日 的
+        if (StringUtils.hasText(expireAt)) {
+            gptConfig.setExpiresAt(LocalDateTime.parse(expireAt + " 00:00:00", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        }
         int insert = this.baseMapper.insert(gptConfig);
         log.info("添加gpt配置结果:{}", insert);
         return HttpResult.success();

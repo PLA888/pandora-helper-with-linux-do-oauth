@@ -15,5 +15,8 @@
     <changeSet id="1728551828043-3" author="kyle (generated)">
         <sqlFile path="classpath:db/changelog/V1-2.sql" relativeToChangelogFile="true" />
     </changeSet>
+    <changeSet id="1728551828043-4" author="kyle (generated)">
+        <sqlFile path="classpath:db/changelog/V1-3.sql" relativeToChangelogFile="true" />
+    </changeSet>
 
 </databaseChangeLog>

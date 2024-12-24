@@ -16,6 +16,7 @@ import fun.yeelo.oauth.domain.car.CarApply;
 import fun.yeelo.oauth.domain.share.*;
 import fun.yeelo.oauth.utils.ConvertUtil;
 import fun.yeelo.oauth.utils.JwtTokenUtil;
+import fun.yeelo.oauth.utils.OpenAIUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -30,6 +31,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -62,6 +64,8 @@ public class AccountService extends ServiceImpl<AccountMapper, Account> implemen
     private ApiConfigService apiConfigService;
     @Autowired
     private MirrorConfig mirrorConfig;
+    @Autowired
+    private OpenAIUtil openAIUtil;
 
     public List<Account> findAll() {
         return accountMapper.selectList(null);
@@ -345,6 +349,9 @@ public class AccountService extends ServiceImpl<AccountMapper, Account> implemen
             }
         }
         saveOrUpdate(dto);
+        if (StringUtils.hasText(dto.getAccessToken())) {
+            CompletableFuture.runAsync(()->openAIUtil.checkAccount(dto.getAccessToken(), dto.getEmail(), dto.getId()));
+        }
 
         return HttpResult.success(true);
     }
@@ -419,6 +426,10 @@ public class AccountService extends ServiceImpl<AccountMapper, Account> implemen
         dto.setCreateTime(LocalDateTime.now());
         dto.setUpdateTime(LocalDateTime.now());
         saveOrUpdate(dto);
+
+        if (StringUtils.hasText(dto.getAccessToken())) {
+            CompletableFuture.runAsync(()->openAIUtil.checkAccount(dto.getAccessToken(), dto.getEmail(), dto.getId()));
+        }
 
         return HttpResult.success(true);
     }

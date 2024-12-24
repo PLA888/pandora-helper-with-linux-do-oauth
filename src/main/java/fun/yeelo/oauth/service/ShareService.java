@@ -32,6 +32,8 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -114,7 +116,7 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
 
         switch (account.getAccountType()) {
             case 1:
-                return gptConfigService.addShare(account, byId.getUniqueName(), byId.getId(), share.getDuration());
+                return gptConfigService.addShare(account, byId.getUniqueName(), byId.getId(), share.getDuration(), null);
             case 2:
                 return claudeConfigService.addShare(account, byId.getId(), null);
             case 3:
@@ -200,6 +202,7 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
                 ;
                 share.setGptUserCount(total);
                 share.setGptConfigId(gptConfig.getId());
+                share.setGptExpiresAt(gptConfig.getExpiresAt() == null ? "-" : gptConfig.getExpiresAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
             } else {
                 share.setGptEmail("-");
                 share.setGptCarName("-");
@@ -211,6 +214,8 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
                 share.setClaudeCarName(accountService.getById(claudeConfig.getAccountId()).getName());
                 share.setClaudeUserCount(total);
                 share.setClaudeConfigId(claudeConfig.getId());
+                share.setClaudeExpiresAt(claudeConfig.getExpiresAt() == null ? "-" : claudeConfig.getExpiresAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+
             } else {
                 share.setClaudeEmail("-");
                 share.setClaudeCarName("-");
@@ -221,8 +226,9 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
                 int total = apiAccountMap.getOrDefault(apiConfig.getAccountId(), new ArrayList<>()).size();
                 share.setApiCarName(accountService.getById(apiConfig.getAccountId()).getName());
                 share.setApiUserCount(total);
-
                 share.setApiConfigId(apiConfig.getId());
+                share.setApiExpiresAt(apiConfig.getExpiresAt() == null ? "-" : apiConfig.getExpiresAt().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+
             } else {
                 share.setApiCarName("-");
             }
@@ -328,11 +334,11 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
         Account account = accountService.getById(dto.getAccountId());
         switch (account.getAccountType()) {
             case 1:
-                return gptConfigService.addShare(account, dto.getUniqueName(), shareId, null);
+                return gptConfigService.addShare(account, dto.getUniqueName(), shareId, null, dto.getExpiresAt());
             case 2:
-                return claudeConfigService.addShare(account, shareId, null);
+                return claudeConfigService.addShare(account, shareId, dto.getExpiresAt());
             case 3:
-                return apiConfigService.addShare(account, shareId, null);
+                return apiConfigService.addShare(account, shareId, dto.getExpiresAt());
             default:
                 return HttpResult.success(false);
 
@@ -393,11 +399,11 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
 
         switch (account.getAccountType()) {
             case 1:
-                return gptConfigService.addShare(account, byId.getUniqueName(), byId.getId(), null);
+                return gptConfigService.addShare(account, byId.getUniqueName(), byId.getId(), null, share.getExpiresAt());
             case 2:
-                return claudeConfigService.addShare(account, byId.getId(), null);
+                return claudeConfigService.addShare(account, byId.getId(), share.getExpiresAt());
             case 3:
-                return apiConfigService.addShare(account, byId.getId(), null);
+                return apiConfigService.addShare(account, byId.getId(), share.getExpiresAt());
             default:
                 return HttpResult.error("激活出现异常");
         }

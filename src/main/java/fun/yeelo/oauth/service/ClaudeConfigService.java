@@ -63,14 +63,19 @@ public class ClaudeConfigService extends ServiceImpl<ClaudeConfigMapper, ShareCl
     }
 
 
-    public HttpResult<Boolean> addShare(Account account, int shareId, Integer expire) {
+    public HttpResult<Boolean> addShare(Account account, int shareId, String expireAt) {
         // 删除原有的
         this.baseMapper.delete(new LambdaQueryWrapper<ShareClaudeConfig>().eq(ShareClaudeConfig::getShareId, shareId));
 
         ShareClaudeConfig shareClaudeConfig = new ShareClaudeConfig();
         shareClaudeConfig.setShareId(shareId);
         shareClaudeConfig.setAccountId(account.getId());
+        // 根据expireAt设置过期时间，格式是精确到日 的
+        if (StringUtils.hasText(expireAt)) {
+            shareClaudeConfig.setExpiresAt(LocalDateTime.parse(expireAt + " 00:00:00", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        }
         save(shareClaudeConfig);
+
         return HttpResult.success();
     }
 

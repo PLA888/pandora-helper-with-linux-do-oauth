@@ -19,6 +19,8 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -62,6 +64,7 @@ public class CarService extends ServiceImpl<CarMapper, CarApply> implements ISer
             ShareVO shareVO = new ShareVO();
             shareVO.setId(id);
             shareVO.setAccountId(dto.getAccountId());
+            shareVO.setExpiresAt(LocalDateTime.now().plusDays(30).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
             this.remove(new LambdaQueryWrapper<CarApply>().eq(CarApply::getAccountId, dto.getAccountId()).eq(CarApply::getShareId, id));
             shareService.distribute(shareVO);
         });
