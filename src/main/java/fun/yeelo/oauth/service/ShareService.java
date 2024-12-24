@@ -8,11 +8,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fun.yeelo.oauth.config.CommonConst;
 import fun.yeelo.oauth.config.HttpResult;
+import fun.yeelo.oauth.config.MirrorConfig;
 import fun.yeelo.oauth.dao.ShareMapper;
 import fun.yeelo.oauth.domain.*;
 import fun.yeelo.oauth.utils.ConvertUtil;
 import fun.yeelo.oauth.utils.EncryptDecryptUtil;
 import fun.yeelo.oauth.utils.JwtTokenUtil;
+import fun.yeelo.oauth.utils.MirrorUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -75,6 +77,10 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
     private String chatSite;
     @Autowired
     private ShareService shareService;
+    @Autowired
+    private MirrorUtil mirrorUtil;
+    @Autowired
+    private MirrorConfig mirrorConfig;
 
 
     public List<Share> findAll() {
@@ -429,30 +435,7 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
         headers.add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36");
 
         if (mirrorEnable) {
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            if (!mirrorPwd.equals("-"))  {
-                headers.setBearerAuth(mirrorPwd);
-            }
-            headers.add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36");
-            ObjectNode personJsonObject = objectMapper.createObjectNode();
-            String uniqueName = shareService.getById(gptShare.getShareId()).getUniqueName();
-            personJsonObject.put("user_name", uniqueName.length() < 4 ? uniqueName+"####" : uniqueName);
-            personJsonObject.put("isolated_session",true);
-            personJsonObject.put("access_token",accountService.getById(gptShare.getAccountId()).getAccessToken());
-
-            ResponseEntity<String> stringResponseEntity = restTemplate.postForEntity(mirrorHost+"/api/login", new HttpEntity<>(personJsonObject, headers), String.class);
-            try {
-                Map map = objectMapper.readValue(stringResponseEntity.getBody(), Map.class);
-                if (map.containsKey("user-gateway-token")) {
-                    String gatewayToken = map.get("user-gateway-token").toString();
-                    return HttpResult.success(mirrorHost+"/api/not-login?user_gateway_token="+gatewayToken);
-                }else {
-                    return HttpResult.error("获取Gateway Token 异常");
-                }
-            } catch (IOException e) {
-                log.error("Check user error:", e);
-                return HttpResult.error("系统内部异常");
-            }
+            return mirrorConfig.getSimpleMirrorUrl(shareService.getById(gptShare.getShareId()).getUniqueName(), gptShare.getAccountId());
         }
         else {
             ObjectNode personJsonObject = objectMapper.createObjectNode();

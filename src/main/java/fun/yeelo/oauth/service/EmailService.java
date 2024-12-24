@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 public class EmailService {
     @Autowired
     private JavaMailSender mailSender;
+
     @Value("${spring.mail.username}")
     private String adminEmail;
 
@@ -26,7 +27,7 @@ public class EmailService {
             message.setSubject(subject);
             message.setText(text);
             mailSender.send(message);
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("邮件发送失败", e);
         }
 

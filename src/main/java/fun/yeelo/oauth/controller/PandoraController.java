@@ -195,32 +195,8 @@ public class PandoraController {
             return HttpResult.error("密码错误，请重试");
         }
 
-
         if (mirrorEnable) {
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            if (!mirrorPwd.equals("-"))  {
-                headers.setBearerAuth(mirrorPwd);
-            }
-            headers.add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36");
-            ObjectNode personJsonObject = objectMapper.createObjectNode();
-            personJsonObject.put("user_name", username.length() < 4 ? username+"####" : username);
-            personJsonObject.put("isolated_session",true);
-            personJsonObject.put("access_token",accountService.getById(gptShare.getAccountId()).getAccessToken());
-
-            ResponseEntity<String> stringResponseEntity = restTemplate.postForEntity(mirrorHost+"/api/login", new HttpEntity<>(personJsonObject, headers), String.class);
-            try {
-                Map map = objectMapper.readValue(stringResponseEntity.getBody(), Map.class);
-                if (map.containsKey("user-gateway-token")) {
-                    String gatewayToken = map.get("user-gateway-token").toString();
-                    return HttpResult.success(mirrorHost+"/api/not-login?user_gateway_token="+gatewayToken);
-                }else {
-                    return HttpResult.error("获取Gateway Token 异常");
-                }
-            } catch (IOException e) {
-                log.error("Check user error:", e);
-                return HttpResult.error("系统内部异常");
-            }
+            return mirrorConfig.getSimpleMirrorUrl(user.getUniqueName(), gptShare.getAccountId());
         }else {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
