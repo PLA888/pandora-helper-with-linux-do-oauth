@@ -230,8 +230,17 @@ public class UpdateTimer {
                 if (expireTime!=null) {
                     log.info("账号{}过期时间:{}",account.getEmail(),expireTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
                 }
-                if (mailEnable && expireTime!=null && Duration.between(LocalDateTime.now(),expireTime).toDays() < 3) {
-                    emailService.sendSimpleEmail(account.getEmail(), "ChatGPT账号过期预警", "您的ChatGPT即将到期，到期时间为：" + expireTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "，账号(邮箱):" + account.getEmail() + "，请注意及时续费。");
+                if (mailEnable
+                            && expireTime!=null
+                            && expireTime.isAfter(LocalDateTime.now())
+                            && Duration.between(LocalDateTime.now(),expireTime).toDays() < 3) {
+                    emailService.sendSimpleEmail(account.getEmail(), "ChatGPT订阅过期预警", "您的ChatGPT订阅即将到期，到期时间为：" + expireTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "，账号(邮箱):" + account.getEmail() + "，请注意及时续费。");
+                }
+                if (mailEnable
+                            && expireTime!=null
+                            && expireTime.isBefore(LocalDateTime.now())
+                            && Duration.between(expireTime, LocalDateTime.now()).toDays() < 3) {
+                    emailService.sendSimpleEmail(account.getEmail(), "ChatGPT订阅过期提醒", "您的ChatGPT订阅已经到期，到期时间为：" + expireTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + "，账号(邮箱):" + account.getEmail() + "，请注意及时续费。");
                 }
             } catch (Exception ex) {
                 log.error("获取chatgpt账号过期时间异常,账号:{}", account.getEmail(), ex);
