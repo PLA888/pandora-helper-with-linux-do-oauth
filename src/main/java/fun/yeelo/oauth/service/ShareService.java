@@ -14,7 +14,6 @@ import fun.yeelo.oauth.domain.*;
 import fun.yeelo.oauth.utils.ConvertUtil;
 import fun.yeelo.oauth.utils.EncryptDecryptUtil;
 import fun.yeelo.oauth.utils.JwtTokenUtil;
-import fun.yeelo.oauth.utils.MirrorUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
