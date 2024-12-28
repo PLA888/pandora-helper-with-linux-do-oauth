@@ -62,6 +62,9 @@ public class UpdateTimer {
     @Autowired
     private ApiConfigService apiConfigService;
 
+    @Autowired
+    private MidjourneyService  midjourneyService;
+
     @PostConstruct
     @ConditionalOnProperty(name = "smtp.enable", havingValue = "true")
     public void init() {
@@ -69,12 +72,12 @@ public class UpdateTimer {
         CompletableFuture.runAsync(() -> {
             sendAccountExpiringEmail();
             sendShareExpiringEmail();
+            midjourneyService.getUsers(null);
         });
     }
 
     @Scheduled(cron = "0 0 1 * * ?")
     public void updateExpire() {
-        List<Share> shares = shareService.list().stream().filter(e -> StringUtils.hasText(e.getExpiresAt()) && !e.getExpiresAt().equals("-")).collect(Collectors.toList());
         List<ShareGptConfig> gptConfigs = gptConfigService.list().stream().filter(e -> Objects.nonNull(e.getExpiresAt())).collect(Collectors.toList());
         List<ShareClaudeConfig> claudeConfigs = claudeConfigService.list().stream().filter(e -> Objects.nonNull(e.getExpiresAt())).collect(Collectors.toList());
         List<ShareApiConfig> apiConfigs = apiConfigService.list().stream().filter(e -> Objects.nonNull(e.getExpiresAt())).collect(Collectors.toList());

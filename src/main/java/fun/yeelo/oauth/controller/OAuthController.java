@@ -1,7 +1,9 @@
 package fun.yeelo.oauth.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import fun.yeelo.oauth.config.HttpResult;
 import fun.yeelo.oauth.domain.share.Share;
 import fun.yeelo.oauth.domain.share.ShareVO;
@@ -34,6 +36,11 @@ public class OAuthController {
     @Value("${linux-do.oauth2.client.registration.redirect-uri}")
     private String apiUrl;
 
+    @Value("${midjourney.url}")
+    private String mjUrl;
+    @Value("${midjourney.key}")
+    private String mjKey;
+
     private static final Logger log = LoggerFactory.getLogger(OAuthController.class);
     @Value("${linux-do.oauth2.client.registration.client-id}")
     private String clientId;
@@ -59,8 +66,11 @@ public class OAuthController {
     private PasswordEncoder passwordEncoder;
 
     @GetMapping("/config")
-    public String config() {
-        return apiUrl.replace("/loading","");
+    public JSONObject config() {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("apiUrl", apiUrl.replace("/loading",""));
+        jsonObject.put("mjUrl", mjUrl);
+        return jsonObject;
     }
 
     @GetMapping("/initiate")

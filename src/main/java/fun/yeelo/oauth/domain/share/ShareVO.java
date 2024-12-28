@@ -54,4 +54,6 @@ public class ShareVO extends Share{
 
     private String gptExpiresAt = "-";
 
+    private String apiKey;
+
 }

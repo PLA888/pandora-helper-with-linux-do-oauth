@@ -37,6 +37,9 @@ public class LoginController {
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
 
+    @Value("${midjourney.key}")
+    private String mjKey;
+
     @Autowired
     private UpdateTimer updateTimer;
 
@@ -111,6 +114,28 @@ public class LoginController {
 
         return HttpResult.success(shareVO);
     }
+
+    @GetMapping("/info")
+    public HttpResult<ShareVO> userInfo(HttpServletRequest request) {
+        String token = jwtTokenUtil.getTokenFromRequest(request);
+        if (!StringUtils.hasText(token)) {
+
+            return HttpResult.error("用户未登录，请尝试刷新页面");
+        }
+        String username = jwtTokenUtil.extractUsername(token);
+        Share user = shareService.getByUserName(username);
+        if (user == null) {
+            return HttpResult.error("用户不存在，请联系管理员");
+        }
+        ShareVO shareVO = new ShareVO();
+        // 根据user计算hash值
+        shareVO.setApiKey(StringUtils.hasText(mjKey)? mjKey : user.getId()+"+"+user.getUniqueName()+"+"+user.getPassword().substring(0,10));
+        shareVO.setAvatarUrl(user.getAvatarUrl());
+        shareVO.setUsername(user.getUniqueName());
+        shareVO.setTrustLevel(user.getTrustLevel());
+        return HttpResult.success(shareVO);
+    }
+
 
     @GetMapping("/checkToken")
     public HttpResult<Boolean> checkToken(HttpServletRequest request){

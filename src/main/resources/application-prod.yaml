@@ -12,7 +12,7 @@ linux-do:
       registration:
         client-id: ${CLIENT_ID:0}
         client-secret: ${CLIENT_SECRET:0}
-        redirect-uri: ${REDIRECT_URI:0}
+        redirect-uri: ${REDIRECT_URI:http://localhost:8181}
         authorization-grant-type: authorization_code
         scope: read,write
       provider:
@@ -50,6 +50,9 @@ admin-name: ${ADMIN_NAME:admin}
 chat_site: ${CHAT_SITE:https://next.yeelo.top}
 task:
   refresh: ${REFRESH_TASK_EXPRESSION:0 0 2 * * ?}  # 使用环境变量，冒号后面是默认值
+midjourney:
+    url: ${MJ_URL:https://midjourney.yeelo.fun}
+    key: ${MJ_KEY:}
 
 
 mirror:

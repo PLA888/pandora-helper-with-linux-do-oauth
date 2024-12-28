@@ -37,4 +37,7 @@ public class Share {
 
     @TableField("trust_level")
     private Integer trustLevel;
+
+    @TableField("mj_user_id")
+    private String mjUserId;
 }
