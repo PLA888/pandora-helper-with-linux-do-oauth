@@ -86,7 +86,7 @@ public class UpdateTimer {
                 LocalDate expireData = share.getExpiresAt().toLocalDate();
                 // 大于等于过期时间的，删除share config
                 if (expireData.isEqual(LocalDate.now()) || !expireData.isAfter(LocalDate.now())) {
-                    gptConfigService.remove(new LambdaQueryWrapper<ShareGptConfig>().eq(ShareGptConfig::getShareId, share.getId()));
+                    gptConfigService.remove(new LambdaQueryWrapper<ShareGptConfig>().eq(ShareGptConfig::getId, share.getId()));
                 }
             } catch (Exception ex) {
                 log.error("ChatGPT expire detect error,unique_name:{}", shareService.getById(share.getShareId()).getUniqueName(), ex);
@@ -97,7 +97,7 @@ public class UpdateTimer {
                 LocalDate expireData = share.getExpiresAt().toLocalDate();
                 // 大于等于过期时间的，删除share config
                 if (expireData.isEqual(LocalDate.now()) || !expireData.isAfter(LocalDate.now())) {
-                    apiConfigService.remove(new LambdaQueryWrapper<ShareApiConfig>().eq(ShareApiConfig::getShareId, share.getId()));
+                    apiConfigService.remove(new LambdaQueryWrapper<ShareApiConfig>().eq(ShareApiConfig::getId, share.getId()));
                 }
             } catch (Exception ex) {
                 log.error("API expire detect error,unique_name:{}", shareService.getById(share.getShareId()).getUniqueName(), ex);
@@ -108,7 +108,7 @@ public class UpdateTimer {
                 LocalDate expireData = share.getExpiresAt().toLocalDate();
                 // 大于等于过期时间的，删除share config
                 if (expireData.isEqual(LocalDate.now()) || !expireData.isAfter(LocalDate.now())) {
-                    claudeConfigService.remove(new LambdaQueryWrapper<ShareClaudeConfig>().eq(ShareClaudeConfig::getShareId, share.getId()));
+                    claudeConfigService.remove(new LambdaQueryWrapper<ShareClaudeConfig>().eq(ShareClaudeConfig::getId, share.getId()));
                 }
             } catch (Exception ex) {
                 log.error("Claude expire detect error,unique_name:{}", shareService.getById(share.getShareId()).getUniqueName(), ex);

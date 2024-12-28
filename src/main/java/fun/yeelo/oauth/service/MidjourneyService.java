@@ -44,7 +44,7 @@ public class MidjourneyService {
         // 设置分页信息
         Pagination pagination = new Pagination();
         pagination.setCurrent(1);
-        pagination.setPageSize(10);
+        pagination.setPageSize(999);
         requestBody.setPagination(pagination);
 
         // 设置排序信息
