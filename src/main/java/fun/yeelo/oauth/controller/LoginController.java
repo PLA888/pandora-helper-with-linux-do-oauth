@@ -8,6 +8,7 @@ import fun.yeelo.oauth.domain.share.ResetDTO;
 import fun.yeelo.oauth.domain.share.Share;
 import fun.yeelo.oauth.domain.share.ShareVO;
 import fun.yeelo.oauth.service.AccountService;
+import fun.yeelo.oauth.service.MidjourneyService;
 import fun.yeelo.oauth.service.RedemptionService;
 import fun.yeelo.oauth.service.ShareService;
 import fun.yeelo.oauth.timer.UpdateTimer;
@@ -36,6 +37,9 @@ public class LoginController {
     private static final Logger log = LoggerFactory.getLogger(LoginController.class);
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
+
+    @Autowired
+    private MidjourneyService midjourneyService;
 
     @Value("${midjourney.key}")
     private String mjKey;
@@ -94,6 +98,7 @@ public class LoginController {
             redemptionService.activate(share.getId(), password);
             password = "123456";
             user = share;
+            midjourneyService.addUser(share, "DISABLED");
         }
         if (user == null) {
             return HttpResult.error("用户不存在，请重试");
@@ -202,6 +207,7 @@ public class LoginController {
         update.setId(user.getId());
         update.setPassword(passwordEncoder.encode(newPassword));
         boolean res = shareService.updateById(update);
+        midjourneyService.updateUser(update, null);
         return res ? HttpResult.success("重置成功") : HttpResult.error("重置失败");
     }
 

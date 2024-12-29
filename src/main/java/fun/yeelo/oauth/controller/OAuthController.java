@@ -7,6 +7,7 @@ import com.sun.org.apache.xpath.internal.operations.Bool;
 import fun.yeelo.oauth.config.HttpResult;
 import fun.yeelo.oauth.domain.share.Share;
 import fun.yeelo.oauth.domain.share.ShareVO;
+import fun.yeelo.oauth.service.MidjourneyService;
 import fun.yeelo.oauth.service.ShareService;
 import fun.yeelo.oauth.utils.ConvertUtil;
 import org.slf4j.Logger;
@@ -64,6 +65,8 @@ public class OAuthController {
     private ShareService shareService;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private MidjourneyService midjourneyService;
 
     @GetMapping("/config")
     public JSONObject config() {
@@ -149,7 +152,13 @@ public class OAuthController {
                     userToAdd.setTrustLevel(share.getTrustLevel());
                     userToAdd.setPassword(passwordEncoder.encode("123456"));
                     userToAdd.setComment("");
-                    shareService.save(ConvertUtil.convert(userToAdd,Share.class));
+                    Share addUser = ConvertUtil.convert(userToAdd, Share.class);
+                    shareService.save(addUser);
+                    try {
+                        midjourneyService.addUser(addUser, "DISABLED");
+                    } catch (Exception e){
+                        log.error("添加用户失败", e);
+                    }
                 }else {
                     Integer trustLevel = share.getTrustLevel();
                     String avatarUrl = share.getAvatarUrl();

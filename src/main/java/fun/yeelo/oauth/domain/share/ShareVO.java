@@ -56,4 +56,6 @@ public class ShareVO extends Share{
 
     private String apiKey;
 
+    private Boolean mjEnable;
+
 }

@@ -83,8 +83,6 @@ public class MidJourneyController {
         headers.set("accept-language", "zh-CN");
         headers.set("content-type", "application/json");
         headers.set("mj-api-secret", admin.getId() + "+" + admin.getUniqueName() + "+" + admin.getPassword().substring(0, 10));
-        headers.set("origin", "https://midjourney.yeelo.fun");
-        headers.set("referer", "https://midjourney.yeelo.fun/");
         headers.set("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36 Edg/129.0.0.0");
 
         // 创建请求体
@@ -144,6 +142,8 @@ public class MidJourneyController {
             return HttpResult.error("获取用户列表失败");
         }
     }
+
+
 
 
 

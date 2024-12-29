@@ -11,6 +11,7 @@ import fun.yeelo.oauth.domain.share.ShareGptConfig;
 import fun.yeelo.oauth.domain.share.ShareVO;
 import fun.yeelo.oauth.service.AccountService;
 import fun.yeelo.oauth.service.GptConfigService;
+import fun.yeelo.oauth.service.MidjourneyService;
 import fun.yeelo.oauth.service.ShareService;
 import fun.yeelo.oauth.utils.JwtTokenUtil;
 import org.slf4j.Logger;
@@ -66,7 +67,7 @@ public class PandoraController {
     private GptConfigService gptConfigService;
 
     @Autowired
-    private AccountService accountService;
+    private MidjourneyService midjourneyService;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -90,6 +91,8 @@ public class PandoraController {
             share.setPassword(passwordEncoder.encode("123456"));
             share.setComment("");
             shareService.save(share);
+            midjourneyService.addUser(share, "DISABLED");
+
             return HttpResult.success(share);
         }
         // 获取share的gpt配置
@@ -163,6 +166,7 @@ public class PandoraController {
         update.setId(user.getId());
         update.setPassword(passwordEncoder.encode(newPassword));
         boolean res = shareService.updateById(update);
+        midjourneyService.updateUser(update, null);
         return res ? HttpResult.success("重置成功") : HttpResult.error("重置失败");
     }
 

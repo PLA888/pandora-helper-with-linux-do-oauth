@@ -79,6 +79,8 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
     private ShareService shareService;
     @Autowired
     private MirrorConfig mirrorConfig;
+    @Autowired
+    private MidjourneyService midjourneyService;
 
 
     public List<Share> findAll() {
@@ -329,6 +331,7 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
         dto.setPassword(passwordEncoder.encode(dto.getPassword()));
         dto.setParentId(user.getId());
         getBaseMapper().insert(dto);
+        midjourneyService.addUser(dto, "DISABLED");
         int shareId = dto.getId();
 
         Account account = accountService.getById(dto.getAccountId());
@@ -345,7 +348,7 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
         }
     }
 
-    public HttpResult<Boolean> updateShare(HttpServletRequest request, Share dto) {
+    public HttpResult<Boolean> updateShare(HttpServletRequest request, ShareVO dto) {
         String token = jwtTokenUtil.getTokenFromRequest(request);
         if (!StringUtils.hasText(token)) {
             return HttpResult.error("用户未登录，请尝试刷新页面");
@@ -361,6 +364,11 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
         }
 
         Share share = getById(dto.getId());
+        if (dto.getMjEnable()!=null && dto.getMjEnable() && user.getId().equals(1)) {
+            midjourneyService.updateUser(share, "ENABLED");
+        } else {
+            midjourneyService.updateUser(share, "DISABLED");
+        }
 
         Share updateVo = new Share();
         if (user.getId().equals(share.getParentId())) {
@@ -423,6 +431,11 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
             share.setPassword(passwordEncoder.encode("123456"));
             share.setComment("");
             save(share);
+            try {
+                midjourneyService.addUser(ConvertUtil.convert(share, Share.class), "DISABLED");
+            } catch (Exception e) {
+                log.error("添加用户失败", e);
+            }
             //return HttpResult.error("当前用户不支持登录面板,请联系管理员");
         }
         final UserDetails userDetails = userDetailsService.loadUserByUsername(username);

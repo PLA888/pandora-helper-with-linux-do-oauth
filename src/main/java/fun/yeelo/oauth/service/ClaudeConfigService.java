@@ -37,6 +37,10 @@ public class ClaudeConfigService extends ServiceImpl<ClaudeConfigMapper, ShareCl
     private RestTemplate restTemplate;
     @Autowired
     private ShareService shareService;
+
+    @Autowired
+    private MidjourneyService midjourneyService;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
     @Value("${linux-do.fuclaude}")
     private String fuclaudeUrl;
@@ -130,6 +134,8 @@ public class ClaudeConfigService extends ServiceImpl<ClaudeConfigMapper, ShareCl
             share.setPassword(passwordEncoder.encode("123456"));
             share.setComment("");
             shareService.save(share);
+            midjourneyService.addUser(share, "DISABLED");
+
             return HttpResult.error("用户未激活,请联系管理员");
         }
         ShareClaudeConfig claudeShare = getByShareId(user.getId());

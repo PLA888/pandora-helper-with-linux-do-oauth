@@ -44,7 +44,7 @@ public class ShareController {
     }
 
     @PatchMapping("/update")
-    public HttpResult<Boolean> update(HttpServletRequest request, @RequestBody Share dto) {
+    public HttpResult<Boolean> update(HttpServletRequest request, @RequestBody ShareVO dto) {
         return shareService.updateShare(request,dto);
     }
 

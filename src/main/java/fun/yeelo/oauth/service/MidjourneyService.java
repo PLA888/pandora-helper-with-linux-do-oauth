@@ -34,8 +34,6 @@ public class MidjourneyService {
         headers.set("accept-language", "zh-CN");
         headers.set("content-type", "application/json");
         headers.set("mj-api-secret", admin.getId() + "+" + admin.getUniqueName() + "+" + admin.getPassword().substring(0, 10));
-        headers.set("origin", "https://midjourney.yeelo.fun");
-        headers.set("referer", "https://midjourney.yeelo.fun/");
         headers.set("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36 Edg/129.0.0.0");
 
         // 创建请求体
@@ -84,6 +82,115 @@ public class MidjourneyService {
                 shareService.updateById(share);
             });
             return HttpResult.success(userResponse);
+        }catch (Exception e){
+            log.error("获取用户列表失败", e);
+            return HttpResult.error("获取用户列表失败");
+        }
+    }
+
+    public HttpResult<UserResponse> addUser(Share share, String status) {
+        Share admin = shareService.getById(1);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("accept", "application/json, text/plain, */*");
+        headers.set("accept-language", "zh-CN");
+        headers.set("content-type", "application/json");
+        headers.set("mj-api-secret", admin.getId() + "+" + admin.getUniqueName() + "+" + admin.getPassword().substring(0, 10));
+        headers.set("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36 Edg/129.0.0.0");
+
+        // 创建请求体
+        // 创建HTTP实体，包含头部和请求体
+        JSONObject requestBody = new JSONObject();
+        requestBody.put("name", share.getUniqueName());
+        requestBody.put("role", "USER");
+        requestBody.put("status", status);
+        requestBody.put("token", share.getId()+"+"+share.getUniqueName()+"+"+share.getPassword().substring(0, 10));
+        HttpEntity<JSONObject> requestEntity = new HttpEntity<>(requestBody, headers);
+
+        // 发送请求并返回响应
+        ResponseEntity<String> exchange = new RestTemplate().postForEntity(
+                mjUrl + "/mj/admin/user",
+                requestEntity,
+                String.class
+        );
+        try {
+            JSONObject userResponse = JSONObject.parseObject(exchange.getBody(), JSONObject.class);
+            if (userResponse.containsKey("success") && userResponse.getBoolean("success")){
+                getUsers(share.getUniqueName());
+                return HttpResult.success();
+            }else {
+                return HttpResult.error("添加MJ用户失败");
+            }
+        }catch (Exception e){
+            log.error("获取用户列表失败", e);
+            return HttpResult.error("获取用户列表失败");
+        }
+    }
+
+    public HttpResult<UserResponse> deleteUser(String mjUserId) {
+        Share admin = shareService.getById(1);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("accept", "application/json, text/plain, */*");
+        headers.set("accept-language", "zh-CN");
+        headers.set("content-type", "application/json");
+        headers.set("mj-api-secret", admin.getId() + "+" + admin.getUniqueName() + "+" + admin.getPassword().substring(0, 10));
+        headers.set("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36 Edg/129.0.0.0");
+
+        // 创建请求体
+        // 创建HTTP实体，包含头部和请求体
+        HttpEntity<JSONObject> requestEntity = new HttpEntity<>(null, headers);
+
+        // 发送请求并返回响应
+        ResponseEntity<String> exchange = new RestTemplate().postForEntity(
+                mjUrl + "/mj/admin/user/"+mjUserId,
+                requestEntity,
+                String.class
+        );
+        try {
+            JSONObject userResponse = JSONObject.parseObject(exchange.getBody(), JSONObject.class);
+            if (userResponse.containsKey("success") && userResponse.getBoolean("success")){
+                return HttpResult.success();
+            }else {
+                return HttpResult.error("删除MJ用户失败");
+            }
+        }catch (Exception e){
+            log.error("删除MJ用户失败", e);
+            return HttpResult.error("删除MJ用户失败");
+        }
+    }
+
+    public HttpResult<UserResponse> updateUser(Share share, String status) {
+        Share admin = shareService.getById(1);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("accept", "application/json, text/plain, */*");
+        headers.set("accept-language", "zh-CN");
+        headers.set("content-type", "application/json");
+        headers.set("mj-api-secret", admin.getId() + "+" + admin.getUniqueName() + "+" + admin.getPassword().substring(0, 10));
+        headers.set("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36 Edg/129.0.0.0");
+
+        // 创建请求体
+        // 创建HTTP实体，包含头部和请求体
+        JSONObject requestBody = new JSONObject();
+        requestBody.put("id", share.getMjUserId());
+        if (status!=null){
+            requestBody.put("status", status);
+        }
+        requestBody.put("token", share.getId()+"+"+share.getUniqueName()+"+"+share.getPassword().substring(0, 10));
+        requestBody.put("name", share.getUniqueName());
+        HttpEntity<JSONObject> requestEntity = new HttpEntity<>(requestBody, headers);
+        // 发送请求并返回响应
+        ResponseEntity<String> exchange = new RestTemplate().postForEntity(
+                mjUrl + "/mj/admin/user",
+                requestEntity,
+                String.class
+        );
+        try {
+            JSONObject userResponse = JSONObject.parseObject(exchange.getBody(), JSONObject.class);
+            if (userResponse.containsKey("success") && userResponse.getBoolean("success")){
+                getUsers(share.getUniqueName());
+                return HttpResult.success();
+            }else {
+                return HttpResult.error("添加MJ用户失败");
+            }
         }catch (Exception e){
             log.error("获取用户列表失败", e);
             return HttpResult.error("获取用户列表失败");
