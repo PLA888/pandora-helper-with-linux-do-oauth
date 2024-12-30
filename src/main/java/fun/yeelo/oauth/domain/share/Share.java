@@ -8,6 +8,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
 
+import java.lang.ref.PhantomReference;
+
 @TableName("share")
 @Data
 public class Share {
@@ -40,4 +42,7 @@ public class Share {
 
     @TableField("mj_user_id")
     private String mjUserId;
+
+    @TableField("mj_enable")
+    private Boolean mjEnable;
 }

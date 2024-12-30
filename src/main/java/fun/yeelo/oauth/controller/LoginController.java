@@ -138,6 +138,7 @@ public class LoginController {
         shareVO.setAvatarUrl(user.getAvatarUrl());
         shareVO.setUsername(user.getUniqueName());
         shareVO.setTrustLevel(user.getTrustLevel());
+        shareVO.setId(user.getId());
         return HttpResult.success(shareVO);
     }
 

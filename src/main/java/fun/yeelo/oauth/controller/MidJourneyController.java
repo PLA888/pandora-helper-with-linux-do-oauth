@@ -49,19 +49,27 @@ public class MidJourneyController {
     @Autowired
     private MidjourneyService midjourneyService;
 
+    @Value("${midjourney.enable}")
+    private Boolean mjEnable;
+
     @GetMapping("/users")
     public HttpResult<UserResponse> getUsers(HttpServletRequest request, @RequestParam(required = false) String username) {
+        if (!mjEnable) {
+            return HttpResult.error("未启用MJ");
+        }
         String token = jwtTokenUtil.getTokenFromRequest(request);
         if (!StringUtils.hasText(token)){
             return HttpResult.error("用户未登录，请尝试刷新页面");
         }
         String myName = jwtTokenUtil.extractUsername(token);
         Share user = shareService.getByUserName(myName);
-        if (user == null || !user.getId().equals(1)){
+        if (user == null){
             return HttpResult.error("无权访问数据");
         }
-        return midjourneyService.getUsers(username);
-
+        HttpResult<UserResponse> users = midjourneyService.getUsers(username);
+        UserResponse data = users.getData();
+        data.setList(data.getList().stream().filter(e-> user.getId().equals(1) || e.getName().equals(user.getUniqueName())).collect(Collectors.toList()));
+        return users;
     }
 
     @GetMapping("/tasks")

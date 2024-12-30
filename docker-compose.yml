@@ -50,6 +50,24 @@ services:
       CHATGPT_GATEWAY_URL: "http://mirror:8787"
       #PROXY_URL_POOL: ""                             # 19.选填，代理地址用逗号分隔,如：“http://username@password@ip:port,socks5://username@password@ip:port”
 
+  # 更多部署细节请参考：https://github.com/trueai-org/midjourney-proxy
+  mjopen:
+    image: registry.cn-guangzhou.aliyuncs.com/trueai-org/midjourney-proxy
+    container_name: mjopen
+    restart: always
+    ports:
+      - "8086:8080"
+    user: "root"
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - ./logs:/app/logs:rw
+      - ./data:/app/data:rw
+      - ./attachments:/app/wwwroot/attachments:rw
+      - ./ephemeral-attachments:/app/wwwroot/ephemeral-attachments:rw
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+
 volumes:
   db-data:
     driver: local

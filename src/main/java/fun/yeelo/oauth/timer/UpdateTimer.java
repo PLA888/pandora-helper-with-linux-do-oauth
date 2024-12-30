@@ -41,6 +41,9 @@ public class UpdateTimer {
     @Value("${spring.mail.enable}")
     private Boolean mailEnable;
 
+    @Value("${midjourney.enable}")
+    private Boolean mjEnable;
+
     @Autowired
     private AccountService accountService;
 
@@ -69,10 +72,13 @@ public class UpdateTimer {
     @ConditionalOnProperty(name = "smtp.enable", havingValue = "true")
     public void init() {
         log.info("启动预检");
+
         CompletableFuture.runAsync(() -> {
             sendAccountExpiringEmail();
             sendShareExpiringEmail();
-            midjourneyService.getUsers(null);
+            if (mjEnable) {
+                midjourneyService.getUsers(null);
+            }
         });
     }
 

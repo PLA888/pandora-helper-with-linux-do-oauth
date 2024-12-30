@@ -184,7 +184,7 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
                                                       .collect(Collectors.toMap(ShareApiConfig::getShareId, Function.identity()));
 
         // 设置邮箱
-        shareVOS = shareVOS.stream().filter(e -> user.getId().equals(1) || e.getParentId().equals(user.getId())|| e.getId().equals(user.getId()) || (claudeMap.containsKey(e.getId()) || gptMap.containsKey(e.getId()))).collect(Collectors.toList());
+        shareVOS = shareVOS.stream().filter(e -> user.getId().equals(1) || e.getParentId().equals(user.getId()) || e.getId().equals(user.getId()) || (claudeMap.containsKey(e.getId()) || gptMap.containsKey(e.getId()))).collect(Collectors.toList());
         for (ShareVO share : shareVOS) {
             ShareGptConfig gptConfig = gptMap.get(share.getId());
             ShareClaudeConfig claudeConfig = claudeMap.get(share.getId());
@@ -250,7 +250,7 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
             }
         }
         PageVO<ShareVO> pageVO = new PageVO<>();
-        pageVO.setData(page == null ? shareVOS : (shareVOS.isEmpty()? shareVOS : shareVOS.subList(Math.min(10 * (page - 1), shareVOS.size() - 1), Math.min(10 * (page - 1) + size, shareVOS.size()))));
+        pageVO.setData(page == null ? shareVOS : (shareVOS.isEmpty() ? shareVOS : shareVOS.subList(Math.min(10 * (page - 1), shareVOS.size() - 1), Math.min(10 * (page - 1) + size, shareVOS.size()))));
         pageVO.setTotal(shareVOS.size());
         return HttpResult.success(pageVO);
     }
@@ -281,33 +281,33 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
         }
 
         // 删除oaifree的share token
-        if (gptAccount != null) {
-            try {
-                HttpHeaders headers = new HttpHeaders();
-                headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-                MultiValueMap<String, Object> personJsonObject = new LinkedMultiValueMap<>();
-                personJsonObject.add("access_token", gptAccount.getAccessToken());
-                personJsonObject.add("unique_name", share.getUniqueName());
-                personJsonObject.add("expires_in", -1);
-                personJsonObject.add("gpt35_limit", -1);
-                personJsonObject.add("gpt4_limit", -1);
-                personJsonObject.add("site_limit", "");
-                personJsonObject.add("show_userinfo", false);
-                personJsonObject.add("show_conversations", false);
-                personJsonObject.add("reset_limit", true);
-                personJsonObject.add("temporary_chat", false);
-                ResponseEntity<String> stringResponseEntity = restTemplate.exchange(CommonConst.SHARE_TOKEN_URL, HttpMethod.POST, new HttpEntity<>(personJsonObject, headers), String.class);
-                Map map = objectMapper.readValue(stringResponseEntity.getBody(), Map.class);
-                if (map.containsKey("detail") && map.get("detail").equals("revoke token key successfully")) {
-                    log.info("delete success");
-                    return HttpResult.success(true);
-                }
-            } catch (Exception e) {
-                log.error("Check user error:", e);
-                return HttpResult.error("删除用户异常");
-            }
-        }
-
+        //if (gptAccount != null) {
+        //    try {
+        //        HttpHeaders headers = new HttpHeaders();
+        //        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        //        MultiValueMap<String, Object> personJsonObject = new LinkedMultiValueMap<>();
+        //        personJsonObject.add("access_token", gptAccount.getAccessToken());
+        //        personJsonObject.add("unique_name", share.getUniqueName());
+        //        personJsonObject.add("expires_in", -1);
+        //        personJsonObject.add("gpt35_limit", -1);
+        //        personJsonObject.add("gpt4_limit", -1);
+        //        personJsonObject.add("site_limit", "");
+        //        personJsonObject.add("show_userinfo", false);
+        //        personJsonObject.add("show_conversations", false);
+        //        personJsonObject.add("reset_limit", true);
+        //        personJsonObject.add("temporary_chat", false);
+        //        ResponseEntity<String> stringResponseEntity = restTemplate.exchange(CommonConst.SHARE_TOKEN_URL, HttpMethod.POST, new HttpEntity<>(personJsonObject, headers), String.class);
+        //        Map map = objectMapper.readValue(stringResponseEntity.getBody(), Map.class);
+        //        if (map.containsKey("detail") && map.get("detail").equals("revoke token key successfully")) {
+        //            log.info("delete success");
+        //            return HttpResult.success(true);
+        //        }
+        //    } catch (Exception e) {
+        //        log.error("Check user error:", e);
+        //        return HttpResult.error("删除用户异常");
+        //    }
+        //}
+        midjourneyService.deleteUser(share.getMjUserId());
         return HttpResult.success();
     }
 
@@ -331,7 +331,9 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
         dto.setPassword(passwordEncoder.encode(dto.getPassword()));
         dto.setParentId(user.getId());
         getBaseMapper().insert(dto);
-        midjourneyService.addUser(dto, "DISABLED");
+        if (user.getId().equals(1)) {
+            midjourneyService.addUser(dto, dto.getMjEnable() ? "NORMAL" : "DISABLED");
+        }
         int shareId = dto.getId();
 
         Account account = accountService.getById(dto.getAccountId());
@@ -364,9 +366,12 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
         }
 
         Share share = getById(dto.getId());
-        if (dto.getMjEnable()!=null && dto.getMjEnable() && user.getId().equals(1)) {
-            midjourneyService.updateUser(share, "ENABLED");
-        } else {
+        if (dto.getMjEnable()!=null && !StringUtils.hasText(share.getMjUserId())) {
+            midjourneyService.addUser(share, dto.getMjEnable() ? "NORMAL" : "DISABLED");
+        }
+        if (dto.getMjEnable() != null && dto.getMjEnable() && user.getId().equals(1)) {
+            midjourneyService.updateUser(share, "NORMAL");
+        } else if (dto.getMjEnable() != null && !dto.getMjEnable() && user.getId().equals(1)) {
             midjourneyService.updateUser(share, "DISABLED");
         }
 
@@ -375,8 +380,8 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
             updateVo.setExpiresAt(StringUtils.hasText(dto.getExpiresAt()) ? dto.getExpiresAt() : "-");
         }
         updateVo.setId(dto.getId());
-
         updateVo.setComment(dto.getComment() == null ? "" : dto.getComment());
+        updateVo.setMjEnable(dto.getMjEnable());
         updateById(updateVo);
         return HttpResult.success(true);
     }
@@ -451,8 +456,7 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
 
         if (mirrorEnable) {
             return mirrorConfig.getSimpleMirrorUrl(shareService.getById(gptShare.getShareId()).getUniqueName(), gptShare.getAccountId());
-        }
-        else {
+        } else {
             ObjectNode personJsonObject = objectMapper.createObjectNode();
             personJsonObject.put("share_token", gptShare.getShareToken());
             ResponseEntity<String> stringResponseEntity = restTemplate.postForEntity(tokenUrl, new HttpEntity<>(personJsonObject, headers), String.class);
@@ -583,7 +587,7 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
         }
         Share updatePO = new Share();
         try {
-            String redemptionCode = EncryptDecryptUtil.decrypt(code, user.getPassword().substring(0,16));
+            String redemptionCode = EncryptDecryptUtil.decrypt(code, user.getPassword().substring(0, 16));
             JSONObject jsonObject = JSONObject.parseObject(redemptionCode);
             if (!jsonObject.containsKey("username") || !jsonObject.containsKey("date")) {
                 return HttpResult.error("验证码解析异常");
