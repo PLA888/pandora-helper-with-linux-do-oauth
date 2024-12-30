@@ -56,7 +56,7 @@ services:
     container_name: mjopen
     restart: always
     ports:
-      - "8086:8080"
+      - "8080:8080"                                   # 20.如需修改端口，请修改第一个8080为你需要访问的服务器端口
     user: "root"
     environment:
       - TZ=Asia/Shanghai
@@ -74,4 +74,4 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: /home/db                                # 18.指定宿主机的数据库挂载目录，必须使用绝对路径
+      device: /home/db                                # 21.指定宿主机的数据库挂载目录，必须使用绝对路径
