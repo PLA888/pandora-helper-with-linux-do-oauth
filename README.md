@@ -14,7 +14,7 @@
 
 - 🔒 **安全可靠**: 采用 OAuth 授权与智能动态切换功能,确保账号安全
 - 🚀 **便捷管理**: 多账号统一管理,一键切换各类服务
-- 💫 **功能丰富**: 支持 ChatGPT、Claude 及 API 服务的完整生态
+- 💫 **功能丰富**: 支持 ChatGPT、Claude 及 API 服务的完整生态。支持Midjourney画图，且实现用户间绘画隔离
 
 ## 📈 项目数据
 <img src="https://api.star-history.com/svg?repos=Kylsky/pandora-helper-with-linux-do-oauth&type=Date" alt="Star History Chart">
