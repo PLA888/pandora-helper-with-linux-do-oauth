@@ -90,7 +90,7 @@ public class MidJourneyController {
         headers.set("accept", "application/json, text/plain, */*");
         headers.set("accept-language", "zh-CN");
         headers.set("content-type", "application/json");
-        headers.set("mj-api-secret", admin.getId() + "+" + admin.getUniqueName() + "+" + admin.getPassword().substring(0, 10));
+        headers.set("mj-api-secret", StringUtils.hasText(mjKey) ? mjKey : admin.getId() + "+" + admin.getUniqueName() + "+" + admin.getPassword().substring(0, 10));
         headers.set("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36 Edg/129.0.0.0");
 
         // 创建请求体
@@ -110,8 +110,8 @@ public class MidJourneyController {
 
         // 设置搜索信息
         Search search = new Search();
-        search.setCurrent(1);
-        search.setPageSize(10);
+        search.setCurrent(page);
+        search.setPageSize(size);
         search.setPageNumber(0);
         requestBody.setSearch(search);
 

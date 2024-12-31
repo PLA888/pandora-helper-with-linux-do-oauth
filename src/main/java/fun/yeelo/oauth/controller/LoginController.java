@@ -134,7 +134,7 @@ public class LoginController {
         }
         ShareVO shareVO = new ShareVO();
         // 根据user计算hash值
-        shareVO.setApiKey(StringUtils.hasText(mjKey)? mjKey : user.getId()+"+"+user.getUniqueName()+"+"+user.getPassword().substring(0,10));
+        shareVO.setApiKey(user.getId()+"+"+user.getUniqueName()+"+"+user.getPassword().substring(0,10));
         shareVO.setAvatarUrl(user.getAvatarUrl());
         shareVO.setUsername(user.getUniqueName());
         shareVO.setTrustLevel(user.getTrustLevel());
