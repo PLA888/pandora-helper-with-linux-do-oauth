@@ -20,17 +20,19 @@ services:
       SMTP_MAIL_PASSWORD: "your_password"             # 12.邮件服务器密码
       MIRROR_ENABLE: true                             # 13.是否启用MIRROR镜像
       MIRROR_HOST: http://localhost:50002             # 14.填写你的mirror服务地址，由于该地址会直接在页面跳转，建议填写域名，避免局域网外无法访问/ip泄漏等问题
+      MIRROR_ENABLE: true                             # 15.是否启用Midjourney画图，默认关闭
+      MIRROR_HOST: http://localhost:50002             # 16.Midjourney Proxy地址，使用域名或公网ip+端口访问
     ports:
-      - "8181:8181"                                   # 15.如需修改端口，请修改第一个8181为你需要访问的服务器端口
+      - "8181:8181"                                   # 17.如需修改端口，请修改第一个8181为你需要访问的服务器端口
     restart: always
   mirror:
     image: dairoot/chatgpt-gateway:latest
     environment:
       ENABLE_MIRROR_API: false
-      PROXY_URL_POOL: ""                              # 16.选填，代理地址用逗号分隔,如：“http://username:password@ip:port,socks5://username:password@ip:port”
+      PROXY_URL_POOL: ""                              # 18.选填，代理地址用逗号分隔,如：“http://username:password@ip:port,socks5://username:password@ip:port”
       REDIS_URL: redis://redis:6379/0
     ports:
-      - "50002:8787"                                  # 17.如需修改端口，请修改第一个8181为你需要访问的服务器端口
+      - "50002:8787"                                  # 19.如需修改端口，请修改第一个8181为你需要访问的服务器端口
     restart: always
     depends_on:
       - redis
@@ -41,14 +43,14 @@ services:
     ports:
       - "127.0.0.1:16379:6379"
     volumes:
-      - ./redis-data:/data                            # 18.指定宿主机的redis数据挂载目录
+      - ./redis-data:/data                            # 20.指定宿主机的redis数据挂载目录
     command: ["redis-server","--appendonly","yes" ]
   cf5s:
     image: dairoot/cf5s:latest
     restart: always
     environment:
       CHATGPT_GATEWAY_URL: "http://mirror:8787"
-      #PROXY_URL_POOL: ""                             # 19.选填，代理地址用逗号分隔,如：“http://username@password@ip:port,socks5://username@password@ip:port”
+      #PROXY_URL_POOL: ""                             # 21.选填，代理地址用逗号分隔,如：“http://username@password@ip:port,socks5://username@password@ip:port”
 
   # 更多部署细节请参考：https://github.com/trueai-org/midjourney-proxy
   mjopen:
@@ -56,7 +58,7 @@ services:
     container_name: mjopen
     restart: always
     ports:
-      - "8080:8080"                                   # 20.如需修改端口，请修改第一个8080为你需要访问的服务器端口
+      - "8080:8080"                                   # 22.如需修改端口，请修改第一个8080为你需要访问的服务器端口
     user: "root"
     environment:
       - TZ=Asia/Shanghai
