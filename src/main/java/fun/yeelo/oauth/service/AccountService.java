@@ -399,6 +399,8 @@ public class AccountService extends ServiceImpl<AccountMapper, Account> implemen
                 Account updateDTO = new Account();
                 updateDTO.setId(accountId);
                 updateDTO.setAccessToken(newToken);
+                // 刷新后校验账号
+                openAIUtil.checkAccount(newToken, account.getEmail(), accountId);
                 updateDTO.setUpdateTime(LocalDateTime.now());
                 this.saveOrUpdate(updateDTO);
                 log.info("刷新账号{}成功", account.getEmail());
