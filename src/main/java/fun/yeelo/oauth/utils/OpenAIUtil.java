@@ -31,6 +31,9 @@ public class OpenAIUtil {
     @Value("${spring.mail.enable}")
     private Boolean mailEnable;
 
+    @Value("${tokenProxy}")
+    private String tokenProxy;
+
     @Value("${spring.mail.username}")
     private String adminEmail;
 
@@ -43,38 +46,21 @@ public class OpenAIUtil {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(accessToken);
         // 设置基础请求头
-        headers.set(HttpHeaders.ACCEPT, "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7");
+        //host
+        headers.set(HttpHeaders.ACCEPT, "*/*");
         headers.set(HttpHeaders.ACCEPT_LANGUAGE, "zh-CN,zh;q=0.9,en;q=0.8");
-        headers.set(HttpHeaders.CACHE_CONTROL, "max-age=0");
-        headers.set("dnt", "1");
-        headers.set("priority", "u=0, i");
-
+        headers.set(HttpHeaders.CACHE_CONTROL, "no-cache");
         // 设置 UA 相关信息
-        headers.set(HttpHeaders.USER_AGENT, "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36");
-        headers.set("sec-ch-ua", "\"Not)A;Brand\";v=\"99\", \"Google Chrome\";v=\"127\", \"Chromium\";v=\"127\"");
-        headers.set("sec-ch-ua-arch", "\"arm\"");
-        headers.set("sec-ch-ua-bitness", "\"64\"");
-        headers.set("sec-ch-ua-full-version", "\"127.0.6533.120\"");
-        headers.set("sec-ch-ua-full-version-list", "\"Not)A;Brand\";v=\"99.0.0.0\", \"Google Chrome\";v=\"127.0.6533.120\", \"Chromium\";v=\"127.0.6533.120\"");
-        headers.set("sec-ch-ua-mobile", "?0");
-        headers.set("sec-ch-ua-model", "\"\"");
-        headers.set("sec-ch-ua-platform", "\"macOS\"");
-        headers.set("sec-ch-ua-platform-version", "\"15.1.0\"");
+        headers.set(HttpHeaders.USER_AGENT, "PostmanRuntime/7.43.0");
 
-        // 设置 Fetch 相关信息
-        headers.set("sec-fetch-dest", "document");
-        headers.set("sec-fetch-mode", "navigate");
-        headers.set("sec-fetch-site", "none");
-        headers.set("sec-fetch-user", "?1");
-        headers.set("upgrade-insecure-requests", "1");
 
         // 创建请求实体
         HttpEntity<?> requestEntity = new HttpEntity<>(headers);
 
         try {
             // 发送请求
-            ResponseEntity<String> response = restTemplate.exchange(
-                    "https://token.yeelo.fun/backend-api/accounts/check/v4-2023-04-27?timezone_offset_min=-480",
+                ResponseEntity<String> response = restTemplate.exchange(
+                        tokenProxy+ "/backend-api/accounts/check/v4-2023-04-27?timezone_offset_min=-480",
                     HttpMethod.GET,
                     requestEntity,
                     String.class
