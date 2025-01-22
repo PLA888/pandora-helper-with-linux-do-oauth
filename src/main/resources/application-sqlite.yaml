@@ -1,0 +1,17 @@
+spring:
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+    enabled: true
+  jpa:
+    hibernate:
+      ddl-auto: ${JPA_DDL_AUTO:none}
+    show-sql: ${JPA_SHOW_SQL:false}
+    database-platform: fun.yeelo.oauth.config.SQLiteDialect
+    properties:
+      hibernate:
+        dialect: fun.yeelo.oauth.config.SQLiteDialect
+  datasource:
+    driver-class-name: org.sqlite.JDBC
+    url: jdbc:sqlite:/app/db/data.db
+    username:
+    password:

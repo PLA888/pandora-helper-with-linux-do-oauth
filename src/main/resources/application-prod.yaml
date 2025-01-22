@@ -1,33 +1,7 @@
 server:
-  port: 8181
+  port: ${SERVER_PORT:8181}
 
-linux-do:
-  fuclaude: ${FUCLAUDE_PROXY:https://demo.fuclaude.com}
-  oaifree:
-    auth-api: ${OAIFREE_PROXY:https://new.oaifree.com}
-    token-api: https://new.oaifree.com/api/auth/oauth_token
-  oauth2:
-    enable: ${OAUTH2_ENABLE:true}
-    client:
-      registration:
-        client-id: ${CLIENT_ID:0}
-        client-secret: ${CLIENT_SECRET:0}
-        redirect-uri: ${REDIRECT_URI:http://localhost:8181}
-        authorization-grant-type: authorization_code
-        scope: read,write
-      provider:
-        authorization-uri: https://connect.linux.do/oauth2/authorize
-        token-uri: https://connect.linux.do/oauth2/token
-        user-info-uri: https://connect.linux.do/api/user
-        user-name-attribute: id
 spring:
-  datasource:
-    driver-class-name: org.sqlite.JDBC
-    username:
-    password:
-  liquibase:
-    change-log: classpath:db/changelog/db.changelog-master.xml
-    enabled: true
   mail:
     enable: ${SMTP_ENABLE:false}
     host: ${SMTP_MAIL_HOST:smtp.qq.com}
@@ -43,6 +17,26 @@ spring:
           socket:
             factory:
               class: javax.net.ssl.SSLSocketFactory
+
+linux-do:
+  fuclaude: ${FUCLAUDE_URL:https://demo.fuclaude.com}
+  oaifree:
+    auth-api: ${OAIFREE_AUTH_API:https://new.oaifree.com}
+    token-api: ${OAIFREE_TOKEN_API:https://new.oaifree.com/api/auth/oauth_token}
+  oauth2:
+    client:
+      registration:
+        client-id: ${OAUTH_CLIENT_ID:test}
+        client-secret: ${OAUTH_CLIENT_SECRET:test}
+        redirect-uri: ${OAUTH_REDIRECT_URI:http://localhost:8181}
+        authorization-grant-type: authorization_code
+        scope: read,write
+      provider:
+        authorization-uri: ${OAUTH_AUTH_URI:https://connect.linux.do/oauth2/authorize}
+        token-uri: ${OAUTH_TOKEN_URI:https://connect.linux.do/oauth2/token}
+        user-info-uri: ${OAUTH_USER_INFO_URI:https://connect.linux.do/api/user}
+        user-name-attribute: id
+
 mybatis-plus:
   mapper-locations: classpath*:mapper/**/*.xml
 
