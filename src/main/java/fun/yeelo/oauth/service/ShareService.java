@@ -377,7 +377,7 @@ public class ShareService extends ServiceImpl<ShareMapper, Share> implements ISe
 
         Share updateVo = new Share();
         if (user.getId().equals(share.getParentId())) {
-            updateVo.setExpiresAt(StringUtils.hasText(dto.getExpiresAt()) ? dto.getExpiresAt() : "-");
+            updateVo.setExpiresAt(StringUtils.hasText(dto.getExpiresAt()) ? dto.getExpiresAt() : null);
         }
         updateVo.setId(dto.getId());
         updateVo.setComment(dto.getComment() == null ? "" : dto.getComment());

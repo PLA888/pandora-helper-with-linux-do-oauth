@@ -50,11 +50,11 @@ public class ShareVO extends Share{
 
     private Boolean self = false;
 
-    private String claudeExpiresAt = "-";
+    private String claudeExpiresAt;
 
-    private String apiExpiresAt = "-";
+    private String apiExpiresAt;
 
-    private String gptExpiresAt = "-";
+    private String gptExpiresAt;
 
     private String apiKey;
 
