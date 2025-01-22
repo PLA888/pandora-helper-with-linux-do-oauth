@@ -5,36 +5,55 @@ services:
     volumes:
       - db-data:/app/db
     environment:
-      CLIENT_ID: ""                                   # 1.你的linux-do oauth client
-      CLIENT_SECRET: ""                               # 2.你的linux-do oauth secret
-      REDIRECT_URI: ""                                # 3.必填，你的应用地址（请填写公网地址）
-      OAIFREE_PROXY: "https://new.oaifree.com"        # 4.默认oaifree，你可以填写你的代理地址
-      FUCLAUDE_PROXY: "https://demo.fuclaude.com"     # 5.默认fuclaude，你可以填写你的fuclaude地址
       TZ: "Asia/Shanghai"
-      ADMIN_NAME: "Admin"                             # 6.管理员用户名，建议填写你在linux-do的用户名，默认密码是123456
-      CHAT_SITE: "https://next.yeelo.top"             # 7.填写你的ChatGPTNextWeb地址
-      SMTP_ENABLE: true                               # 8.是否启用邮件提醒,true/false,如果是false，可以不配置下方邮件服务器信息
-      SMTP_MAIL_HOST: "smtp.qq.com"                   # 9.邮件服务器地址
-      SMTP_MAIL_PORT: 465                             # 10.邮件服务器端口
-      SMTP_MAIL_USERNAME: "your_username"             # 11.邮件服务器用户名
-      SMTP_MAIL_PASSWORD: "your_password"             # 12.邮件服务器密码
-      MIRROR_ENABLE: true                             # 13.是否启用MIRROR镜像
-      MIRROR_HOST: http://localhost:50002             # 14.填写你的mirror服务地址，由于该地址会直接在页面跳转，建议填写域名，避免局域网外无法访问/ip泄漏等问题
-      MJ_ENABLE: true                                 # 15.是否启用Midjourney画图，默认关闭
-      MJ_HOST: http://localhost:50002                 # 16.Midjourney Proxy地址，使用域名或公网ip+端口访问
-      MJ_KEY: 123456                                  # 17.Midjourney 管理员密码
-      REFRESH_TASK_EXPRESSION: 0 0 2 * * ?            # 18.access token 定时刷新频率,默认每天凌晨 2 点,非必填
+      ADMIN_NAME: "admin"                             # 管理员用户名，建议填写你在linux-do的用户名，默认密码是123456
+
+      # 1.以下是Linux DO 论坛OAuth2接入相关配置，按需配置
+      CLIENT_ID: ""                                   # 你的linux-do oauth client
+      CLIENT_SECRET: ""                               # 你的linux-do oauth secret
+      OAUTH_REDIRECT_URI: ""                          # 你的linux-do oauth redirect uri
+
+      # 2.以下是邮件相关配置，按需配置
+      SMTP_ENABLE: true                               # 是否启用邮件提醒,false则不启用
+      SMTP_MAIL_HOST: "smtp.qq.com"                   # 邮件服务器地址
+      SMTP_MAIL_PORT: 465                             # 邮件服务器端口
+      SMTP_MAIL_USERNAME: "your_username"             # 邮件服务器用户名
+      SMTP_MAIL_PASSWORD: "your_password"             # 邮件服务器密码
+
+      # 3.以下是ChatGPT相关配置，按需配置
+      MIRROR_ENABLE: true                             # 是否启用MIRROR镜像
+      MIRROR_HOST: http://localhost:50002             # 填写你的mirror服务地址，由于该地址会直接在页面跳转，建议填写域名，避免局域网外无法访问/ip泄漏等问题
+      MIRROR_PASSWORD: ""                             # mirror镜像的ADMIN_PASSWORD，如果你的mirror服务设置了密码，请填写
+      REFRESH_TASK_EXPRESSION: 0 0 2 * * ?            # access token 定时刷新频率,默认每天凌晨 2 点,非必填
+
+      # 4.以下是Claude相关配置，按需配置
+      FUCLAUDE_PROXY: "https://demo.fuclaude.com"     # 默认使用fuclaude，你可以填写你的fuclaude地址
+
+      # 5.以下是API相关配置，按需配置
+      CHAT_SITE: "https://next.yeelo.top"             # 填写你的ChatGPTNextWeb地址
+
+      # 6.以下是Midjourney相关配置，按需配置
+      MJ_ENABLE: true                                 # 是否启用Midjourney画图，默认关闭
+      MJ_HOST: http://localhost:50002                 # Midjourney Proxy地址，使用域名或公网ip+端口访问
+      MJ_KEY: 123456                                  # Midjourney 管理员密码
+
+      # 7.以下是MySQL配置，使用默认的sqlite则无需配置
+      DB_TYPE: "mysql"                               # 数据库类型，目前支持sqlite和mysql
+      MYSQL_HOST: ""                                  # MySQL地址，默认localhost
+      MYSQL_PORT:                                     # MySQL端口,默认3306
+      MYSQL_USERNAME: ""                              # MySQL用户名
+      MYSQL_PASSWORD: ""                              # MySQL密码
     ports:
-      - "8181:8181"                                   # 19.如需修改端口，请修改第一个8181为你需要访问的服务器端口
+      - "8181:8181"                                   # 如需修改端口，请修改第一个8181为你需要访问的服务器端口
     restart: always
   mirror:
     image: dairoot/chatgpt-gateway:latest
     environment:
       ENABLE_MIRROR_API: false
-      PROXY_URL_POOL: ""                              # 20.选填，代理地址用逗号分隔,如：“http://username:password@ip:port,socks5://username:password@ip:port”
+      PROXY_URL_POOL: ""                              # 选填，代理地址用逗号分隔,如：“http://username:password@ip:port,socks5://username:password@ip:port”
       REDIS_URL: redis://redis:6379/0
     ports:
-      - "50002:8787"                                  # 21.如需修改端口，请修改第一个8181为你需要访问的服务器端口
+      - "50002:8787"                                  # 如需修改端口，请修改第一个8181为你需要访问的服务器端口
     restart: always
     depends_on:
       - redis
@@ -45,14 +64,14 @@ services:
     ports:
       - "127.0.0.1:16379:6379"
     volumes:
-      - ./redis-data:/data                            # 22.指定宿主机的redis数据挂载目录
+      - ./redis-data:/data                            # 指定宿主机的redis数据挂载目录
     command: ["redis-server","--appendonly","yes" ]
   cf5s:
     image: dairoot/cf5s:latest
     restart: always
     environment:
       CHATGPT_GATEWAY_URL: "http://mirror:8787"
-      #PROXY_URL_POOL: ""                             # 23.选填，代理地址用逗号分隔,如：“http://username@password@ip:port,socks5://username@password@ip:port”
+      #PROXY_URL_POOL: ""                             # 选填，代理地址用逗号分隔,如：“http://username@password@ip:port,socks5://username@password@ip:port”
 
   # 更多部署细节请参考：https://github.com/trueai-org/midjourney-proxy
   mjopen:
@@ -60,7 +79,7 @@ services:
     container_name: mjopen
     restart: always
     ports:
-      - "8080:8080"                                   # 24.如需修改端口，请修改第一个8080为你需要访问的服务器端口
+      - "8080:8080"                                   # 如需修改端口，请修改第一个8080为你需要访问的服务器端口
     user: "root"
     environment:
       - TZ=Asia/Shanghai
