@@ -11,7 +11,7 @@ services:
       # 1.以下是Linux DO 论坛OAuth2接入相关配置，按需配置
       CLIENT_ID: ""                                   # 你的linux-do oauth client
       CLIENT_SECRET: ""                               # 你的linux-do oauth secret
-      OAUTH_REDIRECT_URI: ""                          # 你的linux-do oauth redirect uri
+      REDIRECT_URI: ""                          # 你的linux-do oauth redirect uri
 
       # 2.以下是邮件相关配置，按需配置
       SMTP_ENABLE: true                               # 是否启用邮件提醒,false则不启用

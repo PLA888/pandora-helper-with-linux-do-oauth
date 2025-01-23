@@ -26,9 +26,9 @@ linux-do:
   oauth2:
     client:
       registration:
-        client-id: ${OAUTH_CLIENT_ID:test}
-        client-secret: ${OAUTH_CLIENT_SECRET:test}
-        redirect-uri: ${OAUTH_REDIRECT_URI:http://localhost:8181}
+        client-id: ${CLIENT_ID:test}
+        client-secret: ${CLIENT_SECRET:test}
+        redirect-uri: ${REDIRECT_URI:http://localhost:8181}
         authorization-grant-type: authorization_code
         scope: read,write
       provider:
