@@ -38,11 +38,12 @@ services:
       MJ_KEY: 123456                                  # Midjourney 管理员密码
 
       # 7.以下是MySQL配置，使用默认的sqlite则无需配置
-      DB_TYPE: "mysql"                               # 数据库类型，目前支持sqlite和mysql
+      DB_TYPE: "mysql"                                # 数据库类型，目前支持sqlite和mysql
       MYSQL_HOST: ""                                  # MySQL地址，默认localhost
       MYSQL_PORT:                                     # MySQL端口,默认3306
-      MYSQL_USERNAME: ""                              # MySQL用户名
-      MYSQL_PASSWORD: ""                              # MySQL密码
+      MYSQL_DATABASE: ""                              # MySQL数据库,默认pandora
+      MYSQL_USERNAME: ""                              # MySQL用户名，默认root
+      MYSQL_PASSWORD: ""                              # MySQL密码，默认root
     ports:
       - "8181:8181"                                   # 如需修改端口，请修改第一个8181为你需要访问的服务器端口
     restart: always
