@@ -42,7 +42,7 @@ public class ClaudeConfigService extends ServiceImpl<ClaudeConfigMapper, ShareCl
     private MidjourneyService midjourneyService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-    @Value("${linux-do.fuclaude}")
+    @Value("${fuclaudeProxy}")
     private String fuclaudeUrl;
     @Autowired
     private PasswordEncoder passwordEncoder;

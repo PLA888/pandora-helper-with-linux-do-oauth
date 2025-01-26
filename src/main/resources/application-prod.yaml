@@ -18,8 +18,8 @@ spring:
             factory:
               class: javax.net.ssl.SSLSocketFactory
 
+fuclaudeProxy: ${FUCLAUDE_PROXY:https://demo.fuclaude.com}
 linux-do:
-  fuclaude: ${FUCLAUDE_URL:https://demo.fuclaude.com}
   oaifree:
     auth-api: ${OAIFREE_AUTH_API:https://new.oaifree.com}
     token-api: ${OAIFREE_TOKEN_API:https://new.oaifree.com/api/auth/oauth_token}
@@ -53,5 +53,5 @@ midjourney:
 
 mirror:
   enable: ${MIRROR_ENABLE:true}
-  host: ${MIRROR_HOST:http://127.0.0.1:50002}
+  host: ${MIRROR_HOST:http://127.0.0.1:5005}
   password: ${MIRROR_PASSWORD:-}
