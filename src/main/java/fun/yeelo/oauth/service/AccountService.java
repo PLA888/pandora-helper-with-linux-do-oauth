@@ -4,8 +4,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fun.yeelo.oauth.config.HttpResult;
 import fun.yeelo.oauth.config.MirrorConfig;
 import fun.yeelo.oauth.dao.AccountMapper;
@@ -18,6 +18,7 @@ import fun.yeelo.oauth.utils.ConvertUtil;
 import fun.yeelo.oauth.utils.JwtTokenUtil;
 import fun.yeelo.oauth.utils.OpenAIUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.http.*;
@@ -39,6 +40,9 @@ import java.util.stream.Collectors;
 @Slf4j
 public class AccountService extends ServiceImpl<AccountMapper, Account> implements IService<Account> {
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @Value("${mirror.host}")
+    private String mirrorHost;
 
     @Autowired
     private CacheManager cacheManager;
@@ -175,7 +179,8 @@ public class AccountService extends ServiceImpl<AccountMapper, Account> implemen
         }
         Account byId = getById(id);
         List<ShareGptConfig> gptShares = gptConfigService.list().stream().filter(e -> e.getAccountId().equals(id)).collect(Collectors.toList());
-        String chatUrl = "https://chat.oaifree.com/token/info/";
+        //String chatUrl = "https://chat.oaifree.com/token/info/";
+        String chatUrl = mirrorHost + "/api/usage";
         List<InfoVO> info = new ArrayList<>();
         Map<Integer, Share> shareMap = shareService.list().stream().collect(Collectors.toMap(Share::getId, Function.identity()));
         gptShares.parallelStream().forEach(e -> {
@@ -188,33 +193,34 @@ public class AccountService extends ServiceImpl<AccountMapper, Account> implemen
 
             try {
                 UsageVO usageVO = new UsageVO();
-                ResponseEntity<String> stringResponseEntity = restTemplate.exchange(chatUrl + e.getShareToken(), HttpMethod.GET, new HttpEntity<>(headers), String.class);
+                //String shareToken = mirrorConfig.getSimpleMirrorUrl(infoVO.getUniqueName(), id).getData().replace(mirrorHost + "/api/not-login?user_gateway_token=", "");
+                String shareToken = "fk-921b44473f5b970c";
+                ResponseEntity<String> stringResponseEntity = restTemplate.exchange(chatUrl + "?share_token=" + shareToken, HttpMethod.GET, new HttpEntity<>(headers), String.class);
                 map = objectMapper.readValue(stringResponseEntity.getBody(), Map.class);
-                Map<String, String> usage = (Map<String, String>) map.get("usage");
+                Map<String, Integer> usage = (Map<String, Integer>) map.get("data");
                 usage.entrySet().stream().forEach(entry -> {
                     switch (entry.getKey()) {
                         case "gpt-4o":
-                            usageVO.setGpt4o(Integer.valueOf(entry.getValue()));
+                            usageVO.setGpt_4o(entry.getValue());
                             break;
                         case "gpt-4":
-                            usageVO.setGpt4(Integer.valueOf(entry.getValue()));
+                            usageVO.setGpt_4(entry.getValue());
                             break;
                         case "gpt-4o-mini":
-                            usageVO.setGpt4omini(Integer.valueOf(entry.getValue()));
+                            usageVO.setGpt_4o_mini(entry.getValue());
                             break;
-                        case "o1-preview":
-                            usageVO.setO1Preview(Integer.valueOf(entry.getValue()));
+                        case "o1":
+                            usageVO.setO1(entry.getValue());
                             break;
                         case "o1-mini":
-                            usageVO.setO1Mini(Integer.valueOf(entry.getValue()));
+                            usageVO.setO1_mini(entry.getValue());
                             break;
                     }
-                    infoVO.setUsage(usageVO);
                 });
-            } catch (JsonProcessingException ex) {
-                throw new RuntimeException(ex);
+                infoVO.setUsage(usageVO);
+            } catch (Exception ex) {
+                log.info("获取使用情况异常", ex);
             }
-            ;
             info.add(infoVO);
         });
         return HttpResult.success(info);
@@ -384,14 +390,14 @@ public class AccountService extends ServiceImpl<AccountMapper, Account> implemen
             headers.set(HttpHeaders.ACCEPT_ENCODING,"gzip, deflate, br");
             headers.set(HttpHeaders.CONNECTION,"keep-alive");
             headers.set(HttpHeaders.HOST,"auth0.openai.com");
-            JSONObject body  = new JSONObject();
+            ObjectNode body = objectMapper.createObjectNode();
             body.put("refresh_token", account.getRefreshToken());
             body.put("redirect_uri", "com.openai.chat://auth0.openai.com/ios/com.openai.chat/callback");
             body.put("grant_type", "refresh_token");
             body.put("client_id", "pdlLIX2Y72MIl2rhLhTE9VV9bN905kBh");
             headers.set("Accept-Charset", "UTF-8"); // 声明接受的字符集
-            headers.set(HttpHeaders.CONTENT_LENGTH, String.valueOf(body.toJSONString().length()));
-            ResponseEntity<String> stringResponseEntity = restTemplate.exchange("https://auth0.openai.com/oauth/token", HttpMethod.POST, new HttpEntity<>(body.toJSONString(), headers), String.class);
+            headers.set(HttpHeaders.CONTENT_LENGTH, String.valueOf(body.toString().length()));
+            ResponseEntity<String> stringResponseEntity = restTemplate.postForEntity("https://auth0.openai.com/oauth/token", new HttpEntity<>(body, headers), String.class);
             Map map = objectMapper.readValue(stringResponseEntity.getBody(), Map.class);
             if (map.containsKey("access_token")) {
                 log.info("refresh success");
