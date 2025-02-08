@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
@@ -88,7 +90,8 @@ public class OpenAIUtil {
         }
     }
 
-    public void refresh(Integer accountId, String refreshToken, String accountEmail) {
+    @Deprecated
+    public void refresh0(Integer accountId, String refreshToken, String accountEmail) {
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.set(HttpHeaders.CACHE_CONTROL, "no-cache");
@@ -106,6 +109,38 @@ public class OpenAIUtil {
             headers.set("Accept-Charset", "UTF-8"); // 声明接受的字符集
             headers.set(HttpHeaders.CONTENT_LENGTH, String.valueOf(body.toJSONString().length()));
             ResponseEntity<String> stringResponseEntity = restTemplate.exchange("https://auth0.openai.com/oauth/token", HttpMethod.POST, new HttpEntity<>(body.toJSONString(), headers), String.class);
+            Map map = objectMapper.readValue(stringResponseEntity.getBody(), Map.class);
+            if (map.containsKey("access_token")) {
+                log.info("refresh success");
+                String newToken = map.get("access_token").toString();
+                Account updateDTO = new Account();
+                updateDTO.setId(accountId);
+                updateDTO.setAccessToken(newToken);
+                updateDTO.setUpdateTime(LocalDateTime.now());
+                accountService.saveOrUpdate(updateDTO);
+                log.info("刷新账号{}成功", accountEmail);
+            }
+        } catch (Exception e) {
+            log.error("刷新access_token异常,异常账号:{}", accountEmail, e);
+            if (mailEnable) {
+                emailService.sendSimpleEmail(adminEmail, "刷新access_token异常", "刷新access_token异常,异常账号:" + accountEmail + ", 请检查对应 refresh_token 是否有效");
+            }
+        }
+    }
+
+    public void refresh(Integer accountId, String refreshToken, String accountEmail) {
+        try {
+            MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
+            form.add("refresh_token", refreshToken);
+
+            // 设置请求头
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+            // 创建请求实体
+            HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(form, headers);
+
+            ResponseEntity<String> stringResponseEntity = restTemplate.exchange(tokenProxy+"/auth/refresh", HttpMethod.POST, requestEntity, String.class);
             Map map = objectMapper.readValue(stringResponseEntity.getBody(), Map.class);
             if (map.containsKey("access_token")) {
                 log.info("refresh success");

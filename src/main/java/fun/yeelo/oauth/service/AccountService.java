@@ -363,6 +363,7 @@ public class AccountService extends ServiceImpl<AccountMapper, Account> implemen
     }
 
     public HttpResult<Boolean> refresh(HttpServletRequest request, Integer id) {
+
         String token = jwtTokenUtil.getTokenFromRequest(request);
         if (!StringUtils.hasText(token)) {
             return HttpResult.error("用户未登录，请尝试刷新页面");
@@ -382,35 +383,37 @@ public class AccountService extends ServiceImpl<AccountMapper, Account> implemen
 
         try {
             Integer accountId = account.getId();
-            HttpHeaders headers = new HttpHeaders();
-            headers.set(HttpHeaders.CACHE_CONTROL, "no-cache");
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.set(HttpHeaders.ACCEPT, "*/*");
-            headers.set(HttpHeaders.USER_AGENT,"PostmanRuntime/7.43.0");
-            headers.set(HttpHeaders.ACCEPT_ENCODING,"gzip, deflate, br");
-            headers.set(HttpHeaders.CONNECTION,"keep-alive");
-            headers.set(HttpHeaders.HOST,"auth0.openai.com");
-            ObjectNode body = objectMapper.createObjectNode();
-            body.put("refresh_token", account.getRefreshToken());
-            body.put("redirect_uri", "com.openai.chat://auth0.openai.com/ios/com.openai.chat/callback");
-            body.put("grant_type", "refresh_token");
-            body.put("client_id", "pdlLIX2Y72MIl2rhLhTE9VV9bN905kBh");
-            headers.set("Accept-Charset", "UTF-8"); // 声明接受的字符集
-            headers.set(HttpHeaders.CONTENT_LENGTH, String.valueOf(body.toString().length()));
-            ResponseEntity<String> stringResponseEntity = restTemplate.postForEntity("https://auth0.openai.com/oauth/token", new HttpEntity<>(body, headers), String.class);
-            Map map = objectMapper.readValue(stringResponseEntity.getBody(), Map.class);
-            if (map.containsKey("access_token")) {
-                log.info("refresh success");
-                String newToken = map.get("access_token").toString();
-                Account updateDTO = new Account();
-                updateDTO.setId(accountId);
-                updateDTO.setAccessToken(newToken);
-                // 刷新后校验账号
-                openAIUtil.checkAccount(newToken, account.getEmail(), accountId);
-                updateDTO.setUpdateTime(LocalDateTime.now());
-                this.saveOrUpdate(updateDTO);
-                log.info("刷新账号{}成功", account.getEmail());
-            }
+
+            openAIUtil.refresh(accountId, account.getRefreshToken(), account.getEmail());
+
+            //HttpHeaders headers = new HttpHeaders();
+            //headers.set(HttpHeaders.CACHE_CONTROL, "no-cache");
+            //headers.setContentType(MediaType.APPLICATION_JSON);
+            //headers.set(HttpHeaders.ACCEPT, "*/*");
+            //headers.set(HttpHeaders.USER_AGENT,"PostmanRuntime/7.43.0");
+            //headers.set(HttpHeaders.CONNECTION,"keep-alive");
+            //headers.set(HttpHeaders.HOST,"auth0.openai.com");
+            //ObjectNode body = objectMapper.createObjectNode();
+            //body.put("refresh_token", account.getRefreshToken());
+            //body.put("redirect_uri", "com.openai.chat://auth0.openai.com/ios/com.openai.chat/callback");
+            //body.put("grant_type", "refresh_token");
+            //body.put("client_id", "pdlLIX2Y72MIl2rhLhTE9VV9bN905kBh");
+            //headers.set("Accept-Charset", "UTF-8"); // 声明接受的字符集
+            //headers.set(HttpHeaders.CONTENT_LENGTH, String.valueOf(body.toString().length()));
+            //ResponseEntity<String> stringResponseEntity = restTemplate.postForEntity("https://auth0.openai.com/oauth/token", new HttpEntity<>(body, headers), String.class);
+            //Map map = objectMapper.readValue(stringResponseEntity.getBody(), Map.class);
+            //if (map.containsKey("access_token")) {
+            //    log.info("refresh success");
+            //    String newToken = map.get("access_token").toString();
+            //    Account updateDTO = new Account();
+            //    updateDTO.setId(accountId);
+            //    updateDTO.setAccessToken(newToken);
+            //    // 刷新后校验账号
+            //    openAIUtil.checkAccount(newToken, account.getEmail(), accountId);
+            //    updateDTO.setUpdateTime(LocalDateTime.now());
+            //    this.saveOrUpdate(updateDTO);
+            //    log.info("刷新账号{}成功", account.getEmail());
+            //}
         } catch (Exception e) {
             log.error("刷新access_token异常,异常账号:{}", account.getEmail(), e);
             return HttpResult.error("刷新 access_token异常 , 请检查 refresh_token 是否有效");
